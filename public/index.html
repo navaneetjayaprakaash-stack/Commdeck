@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>My Chat Room</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <script src="https://www.gstatic.com/firebasejs/10.15.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.15.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.15.1/firebase-firestore-compat.js"></script>
+
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+  <div class="app">
+    <div class="sidebar">
+      <div>
+        <div><strong>My Chat Room</strong></div>
+        <div class="small">You: <span id="displayName">—</span></div>
+        <div class="small">UID: <span id="displayUid">—</span></div>
+      </div>
+
+      <div class="rooms">
+        <h4>Rooms</h4>
+        <ul id="roomList"></ul>
+        <div style="display:flex;gap:6px;margin-top:6px;">
+          <input id="newRoomInput" placeholder="new room" style="flex:1;"/>
+          <button id="createRoomBtn">Create</button>
+        </div>
+      </div>
+
+      <div class="users">
+        <h4>Room users</h4>
+        <ul id="userList"></ul>
+      </div>
+
+      <div class="dms">
+        <h4>DMs</h4>
+        <ul id="dmList"></ul>
+      </div>
+
+      <div class="customize-panel">
+        <h4>Customize</h4>
+        <div><label>Background <input type="color" id="bgColor"/></label></div>
+        <div><label>Self bubble <input type="color" id="selfColor"/></label></div>
+        <div><label>Other bubble <input type="color" id="otherColor"/></label></div>
+        <div><label>Font size <input type="number" id="fontSize" min="12" max="30" style="width:70px"/></label></div>
+        <div style="margin-top:6px; display: flex; gap: 6px;">
+          <button id="toggleDarkMode">Dark/Light</button>
+          <button id="resetCustomize">Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="header">
+        <div>
+          <span class="small">Room:</span>
+          <span id="currentRoomLabel" style="font-weight:700">general</span>
+          <span class="small notice" id="roomCount">()</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input id="displayNameInput" placeholder="change name" style="padding:6px;"/>
+          <button id="changeNameBtn">Change</button>
+          <button id="signInGoogle">Sign in (Google)</button>
+          <div class="tabs">
+            <button id="chatTabBtn" class="active">Chat</button>
+            <button id="dmTabBtn">DMs</button>
+          </div>
+        </div>
+      </div>
+      <div id="chatPanel" class="messages"></div>
+      <div id="dmPanel" class="messages" style="display:none;"></div>
+      <div class="inputBar">
+        <input id="messageInput" placeholder="Type a message and press Enter" />
+        <button id="sendBtn">Send</button>
+        <button id="clearBtn">Clear</button>
+      </div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
