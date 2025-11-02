@@ -1,0 +1,132 @@
+// ================================
+// Server: Express + Socket.io
+// ================================
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+const admin = require("firebase-admin");
+
+// Initialize Firebase Admin SDK (replace with your serviceAccount.json)
+const serviceAccount = require("./serviceAccountKey.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
+const db = admin.firestore();
+const messagesCol = db.collection("messages");
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+
+const PORT = process.env.PORT || 3000;
+
+// Serve frontend
+app.use(express.static("public"));
+
+// ================================
+// User + Room tracking
+// ================================
+let users = {};       // socket.id -> { uid, name, room }
+let uidToSocket = {}; // uid -> socket.id
+let rooms = new Set(["general", "random"]);
+
+// ================================
+// Helpers
+// ================================
+function emitRoomList() {
+  io.emit("roomList", Array.from(rooms));
+}
+
+function emitRoomUsers(room) {
+  const list = Object.values(users).filter(u => u.room === room);
+  io.to(room).emit("roomUsers", list);
+}
+
+// ================================
+// Socket.io Events
+// ================================
+io.on("connection", socket => {
+  console.log("connected:", socket.id);
+
+  // Join room
+  socket.on("joinRoom", async ({ room, uid, name }) => {
+    if (!room) room = "general";
+
+    const prev = users[socket.id];
+    if (prev && prev.room) socket.leave(prev.room);
+
+    rooms.add(room);
+    users[socket.id] = { uid, name, room };
+    uidToSocket[uid] = socket.id;
+    socket.join(room);
+
+    io.to(room).emit("chatMessage", {
+      from: "system",
+      text: `${name} joined ${room}`,
+      uid: null,
+      ts: Date.now(),
+      system: true,
+    });
+
+    // Send last 50 messages from Firestore for this room
+    const snapshot = await messagesCol
+      .where("room", "==", room)
+      .orderBy("ts", "asc")
+      .limit(50)
+      .get();
+    snapshot.forEach(doc => socket.emit("chatMessage", doc.data()));
+
+    emitRoomList();
+    emitRoomUsers(room);
+  });
+
+  // Chat messages
+  socket.on("chatMessage", async msg => {
+    if (!msg.room) msg.room = users[socket.id]?.room || "general";
+
+    io.to(msg.room).emit("chatMessage", msg);
+
+    // Save to Firestore
+    await messagesCol.add(msg);
+  });
+
+  // Private messages
+  socket.on("privateMessage", ({ toUid, msg }) => {
+    const toSocket = uidToSocket[toUid];
+    if (toSocket) {
+      io.to(toSocket).emit("privateMessage", { msg, from: users[socket.id]?.name || "anon" });
+    }
+  });
+
+  // Typing
+  socket.on("typing", data => socket.to(data.room).emit("typing", data));
+  socket.on("stopTyping", data => socket.to(data.room).emit("stopTyping", data));
+
+  // Disconnect
+  socket.on("disconnect", () => {
+    const user = users[socket.id];
+    if (user) {
+      const { name, room } = user;
+      delete uidToSocket[user.uid];
+      delete users[socket.id];
+      io.to(room).emit("chatMessage", {
+        from: "system",
+        text: `${name} left ${room}`,
+        uid: null,
+        ts: Date.now(),
+        system: true,
+      });
+      emitRoomUsers(room);
+    }
+    console.log("disconnected:", socket.id);
+  });
+});
+
+// ================================
+// Start server
+// ================================
+server.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
