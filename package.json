@@ -1,0 +1,15 @@
+{
+  "name": "chatroom",
+  "version": "1.0.0",
+  "description": "Cloud-deployable customizable chatroom with Firestore persistence",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2",
+    "firebase-admin": "^11.12.0"
+  },
+  "license": "MIT"
+}
