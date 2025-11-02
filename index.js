@@ -10,8 +10,17 @@ const io=new Server(server);
 
 const PORT=process.env.PORT||3000;
 
-if(!process.env.SERVICE_ACCOUNT_KEY) throw new Error("SERVICE_ACCOUNT_KEY environment variable not set!");
-const serviceAccount=JSON.parse(process.env.SERVICE_ACCOUNT_KEY);
+import admin from "firebase-admin";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+const serviceAccount = JSON.parse(process.env.SERVICE_ACCOUNT_KEY);
+serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
 
 admin.initializeApp({credential:admin.credential.cert(serviceAccount)});
 const db=admin.firestore();
