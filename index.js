@@ -6,13 +6,21 @@ const { Server } = require("socket.io");
 const admin = require("firebase-admin");
 
 // ===== Firebase Setup =====
-const serviceAccount = JSON.parse(process.env.SERVICE_ACCOUNT_KEY);
+// Parse SERVICE_ACCOUNT_KEY from environment
+let serviceAccount;
+try {
+  serviceAccount = JSON.parse(process.env.SERVICE_ACCOUNT_KEY);
 
-// Fix escaped newlines in private key
-if (serviceAccount.private_key.includes("\\n")) {
-  serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, "\n");
+  // Fix escaped newlines in private key
+  if (serviceAccount.private_key.includes("\\n")) {
+    serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, "\n");
+  }
+} catch (err) {
+  console.error("❌ Failed to parse SERVICE_ACCOUNT_KEY:", err);
+  process.exit(1);
 }
 
+// Initialize Firebase
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
@@ -42,7 +50,7 @@ function emitRoomUsers(room) {
 }
 
 // ===== Socket.io Logic =====
-io.on("connection", (socket) => {
+io.on("connection", socket => {
   console.log("connected:", socket.id);
 
   socket.on("joinRoom", async ({ room, uid, name }) => {
@@ -76,11 +84,11 @@ io.on("connection", (socket) => {
       .limit(100)
       .get();
 
-    const history = messagesSnap.docs.map((d) => d.data());
+    const history = messagesSnap.docs.map(d => d.data());
     socket.emit("chatHistory", history);
   });
 
-  socket.on("chatMessage", async (msg) => {
+  socket.on("chatMessage", async msg => {
     if (!msg.room) msg.room = users[socket.id]?.room || "general";
     await db.collection("rooms").doc(msg.room).collection("messages").add(msg);
     io.to(msg.room).emit("chatMessage", msg);
