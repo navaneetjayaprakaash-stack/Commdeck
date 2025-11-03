@@ -1,68 +1,66 @@
-import express from "express";
-import http from "http";
-import { Server } from "socket.io";
-import admin from "firebase-admin";
-import dotenv from "dotenv";
+// index.js
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, addDoc, query, orderBy, onSnapshot } from "firebase/firestore";
 
-dotenv.config();
+// ===== Firebase Config =====
+const firebaseConfig = {
+  apiKey: "AIzaSyDw-qqvRKmbu9R9b...", // replace with your API key
+  authDomain: "your-app.firebaseapp.com",
+  projectId: "your-app",
+  storageBucket: "your-app.appspot.com",
+  messagingSenderId: "1234567890",
+  appId: "1:1234567890:web:abcdef123456"
+};
 
-admin.initializeApp({
-  credential: admin.credential.cert({
-    type: process.env.FIREBASE_TYPE,
-    project_id: process.env.FIREBASE_PROJECT_ID,
-    private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
-    private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
-    client_email: process.env.FIREBASE_CLIENT_EMAIL,
-    client_id: process.env.FIREBASE_CLIENT_ID,
-    auth_uri: process.env.FIREBASE_AUTH_URI,
-    token_uri: process.env.FIREBASE_TOKEN_URI,
-    auth_provider_x509_cert_url: process.env.FIREBASE_AUTH_PROVIDER_CERT_URL,
-    client_x509_cert_url: process.env.FIREBASE_CLIENT_CERT_URL
-  })
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const messagesRef = collection(db, "messages");
+
+// ===== DOM Elements =====
+const chatMessages = document.getElementById("chat-messages");
+const chatInput = document.getElementById("chat-input");
+const sendBtn = document.getElementById("send-btn");
+const themeSelect = document.getElementById("themeSelect");
+const body = document.body;
+
+// ===== Theme Handling =====
+themeSelect.addEventListener("change", () => {
+  // remove previous theme classes
+  body.className = ""; 
+  body.classList.add(themeSelect.value);
 });
 
-const db = admin.firestore();
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
+// ===== Send Message =====
+sendBtn.addEventListener("click", async () => {
+  const text = chatInput.value.trim();
+  if (!text) return;
+  await addDoc(messagesRef, { text, timestamp: Date.now() });
+  chatInput.value = "";
+});
 
-app.use(express.static("public"));
-
-const users = {}; // socket.id -> username
-
-io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
-
-  socket.on("join", (username) => {
-    users[socket.id] = username;
-    io.emit("user list", Object.values(users));
-  });
-
-  socket.on("chat message", async (msg) => {
-    try {
-      await db.collection("messages").add({
-        text: msg.text,
-        user: msg.user,
-        timestamp: admin.firestore.FieldValue.serverTimestamp()
-      });
-      io.emit("chat message", msg);
-    } catch (err) {
-      console.error(err);
-    }
-  });
-
-  socket.on("private message", ({ to, text }) => {
-    const targetSocket = Object.keys(users).find(id => users[id] === to);
-    if (targetSocket) {
-      io.to(targetSocket).emit("private message", { from: users[socket.id], text });
-    }
-  });
-
-  socket.on("disconnect", () => {
-    delete users[socket.id];
-    io.emit("user list", Object.values(users));
+// ===== Listen to Messages =====
+const q = query(messagesRef, orderBy("timestamp", "asc"));
+onSnapshot(q, (snapshot) => {
+  chatMessages.innerHTML = ""; // clear
+  snapshot.forEach(doc => {
+    const msg = doc.data();
+    const div = document.createElement("div");
+    div.classList.add("message");
+    div.textContent = msg.text;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
   });
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// ===== RGB Panel (optional dynamic color) =====
+document.querySelectorAll("#rgb-panel input").forEach(slider => {
+  slider.addEventListener("input", () => {
+    const r = document.getElementById("r").value;
+    const g = document.getElementById("g").value;
+    const b = document.getElementById("b").value;
+    body.style.setProperty("--custom-rgb", `${r}, ${g}, ${b}`);
+  });
+});
+
+// ===== Auto-focus input =====
+chatInput.focus();
