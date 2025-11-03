@@ -1,23 +1,21 @@
-// public/dm.js
-
 export function setupDM(socket) {
   const userList = document.getElementById("userList");
   const messageInput = document.getElementById("messageInput");
   const messageForm = document.getElementById("chat-input-container");
   const chatMessages = document.getElementById("chat-messages");
 
-  let currentDMUser = null; // Track the selected user for DM
+  let currentDMUser = null;
 
-  // Listen for clicks on users
+  // Select user to DM
   userList.addEventListener("click", (e) => {
     if (e.target.tagName === "LI") {
-      currentDMUser = e.target.dataset.username; // store the selected user
-      chatMessages.innerHTML = ""; // Clear messages for new DM
+      currentDMUser = e.target.dataset.username;
+      chatMessages.innerHTML = "";
       appendSystemMessage(`Direct messaging: ${currentDMUser}`);
     }
   });
 
-  // Handle sending DM messages
+  // Send message
   messageForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const msg = messageInput.value.trim();
@@ -26,15 +24,10 @@ export function setupDM(socket) {
     if (currentDMUser) {
       socket.emit("private message", { to: currentDMUser, text: msg });
       appendDMMessage(`To ${currentDMUser}: ${msg}`);
-    } else {
-      // normal chat
-      socket.emit("chat message", msg);
     }
-
-    messageInput.value = "";
   });
 
-  // Listen for incoming DMs
+  // Receive DM
   socket.on("private message", (data) => {
     appendDMMessage(`From ${data.from}: ${data.text}`);
   });
@@ -42,7 +35,7 @@ export function setupDM(socket) {
   function appendDMMessage(text) {
     const div = document.createElement("div");
     div.classList.add("message");
-    div.style.backgroundColor = "#ffd"; // DM background
+    div.style.backgroundColor = "#ffd";
     div.textContent = text;
     chatMessages.appendChild(div);
     chatMessages.scrollTop = chatMessages.scrollHeight;
