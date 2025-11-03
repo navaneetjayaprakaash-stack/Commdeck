@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Chat Room</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Login Screen -->
+  <div id="loginScreen">
+    <h2>Enter Your Name</h2>
+    <input type="text" id="usernameInput" placeholder="Your name">
+    <button id="enterBtn">Enter Chat</button>
+  </div>
+
+  <!-- Chat Screen -->
+  <div id="chatScreen" class="hidden">
+    <div id="chat-container">
+
+      <!-- Sidebar -->
+      <aside id="sidebar">
+        <div id="room-section">
+          <h3>Rooms</h3>
+          <select id="roomSelect"></select>
+          <button id="newRoomBtn">+ New Private Room</button>
+        </div>
+
+        <div id="user-section">
+          <h3>Users</h3>
+          <ul id="userList"></ul>
+        </div>
+      </aside>
+
+      <!-- Main Chat Area -->
+      <main>
+        <header id="chat-header">
+          <h1 id="roomName">Room: General</h1>
+          <div id="name-change">
+            <input type="text" id="nameInput" placeholder="Change name">
+            <button id="changeNameBtn">Change</button>
+          </div>
+          <div id="theme-selector-container">
+            <select id="themeSelect">
+              <!-- Theme options added dynamically by JS -->
+            </select>
+          </div>
+        </header>
+
+        <div id="chat-messages"></div>
+
+        <form id="chat-input-container">
+          <input type="text" id="messageInput" placeholder="Type a message">
+          <button type="submit">Send</button>
+        </form>
+
+        <!-- RGB Panel -->
+        <div id="rgb-panel">
+          <label>R: <input type="range" id="rSlider" min="0" max="255"></label>
+          <label>G: <input type="range" id="gSlider" min="0" max="255"></label>
+          <label>B: <input type="range" id="bSlider" min="0" max="255"></label>
+          <button id="resetTheme">Reset Theme</button>
+        </div>
+
+        <!-- URL Link Generator -->
+        <div id="url-generator">
+          <input type="text" id="urlMessageInput" placeholder="Message for link">
+          <button id="generateLinkBtn">Generate URL</button>
+          <input type="text" id="generatedLink" readonly>
+        </div>
+      </main>
+
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script type="module" src="script.js"></script>
+  <script type="module" src="rgb-theme.js"></script>
+  <script type="module" src="dm.js"></script>
+  <script type="module" src="url-generator.js"></script>
+</body>
+</html>
