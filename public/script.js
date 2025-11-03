@@ -1,13 +1,12 @@
-// public/script.js
 import { setupRGBPanel } from "./rgb-theme.js";
 import { setupDM } from "./dm.js";
 import { setupURLGenerator } from "./url-generator.js";
 import { db } from "./firebase.js";
-import { collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
 
 const socket = io();
 
-// ===== DOM Elements =====
+// DOM Elements
 const loginScreen = document.getElementById("loginScreen");
 const chatScreen = document.getElementById("chatScreen");
 const usernameInput = document.getElementById("usernameInput");
@@ -23,13 +22,13 @@ const sidebar = document.getElementById("sidebar");
 
 // ===== Theme Options =====
 const themes = [
-  "theme-galactic-purple", "theme-electric-sunset", "theme-neon-cyberpunk",
-  "theme-cosmic-ocean", "theme-lava-glow", "theme-aurora-borealis",
-  "theme-radiant-gold", "theme-cyber-teal", "theme-bubblegum-pop",
-  "theme-toxic-lime", "theme-firefly-night", "theme-magenta-storm",
-  "theme-electric-cyan", "theme-starry-violet", "theme-solar-flare",
-  "theme-cosmic-pink", "theme-midnight-blue", "theme-inferno-red",
-  "theme-prism-rainbow", "theme-hyperspace-neon"
+  "theme-galactic-purple","theme-electric-sunset","theme-neon-cyberpunk",
+  "theme-cosmic-ocean","theme-lava-glow","theme-aurora-borealis",
+  "theme-radiant-gold","theme-cyber-teal","theme-bubblegum-pop",
+  "theme-toxic-lime","theme-firefly-night","theme-magenta-storm",
+  "theme-electric-cyan","theme-starry-violet","theme-solar-flare",
+  "theme-cosmic-pink","theme-midnight-blue","theme-inferno-red",
+  "theme-prism-rainbow","theme-hyperspace-neon"
 ];
 
 themes.forEach(theme => {
@@ -39,7 +38,7 @@ themes.forEach(theme => {
   themeSelect.appendChild(opt);
 });
 
-// ===== Firestore Functions =====
+// ===== Firestore: fetch recent messages =====
 async function fetchMessages(limitCount = 50) {
   const messagesCol = collection(db, "messages");
   const q = query(messagesCol, orderBy("timestamp", "asc"), limit(limitCount));
@@ -50,18 +49,6 @@ async function fetchMessages(limitCount = 50) {
     const data = doc.data();
     appendMessage(`${data.user || "Anon"}: ${data.text}`);
   });
-}
-
-async function saveMessage(text, user) {
-  try {
-    await addDoc(collection(db, "messages"), {
-      user,
-      text,
-      timestamp: serverTimestamp()
-    });
-  } catch (err) {
-    console.error("Firestore error:", err);
-  }
 }
 
 // ===== Login Handling =====
@@ -79,21 +66,22 @@ enterBtn.addEventListener("click", async () => {
 });
 
 // ===== Chat Handling =====
-messageForm.addEventListener("submit", async (e) => {
+messageForm.addEventListener("submit", (e) => {
   e.preventDefault();
   const msg = messageInput.value.trim();
   if (!msg) return;
 
-  await saveMessage(msg, username); // save in Firestore
-  socket.emit("chat message", msg); // emit to other users
+  socket.emit("chat message", { user: username, text: msg });
+  appendMessage(`You: ${msg}`);
   messageInput.value = "";
 });
 
 // Listen for incoming messages
 socket.on("chat message", (msg) => {
-  appendMessage(msg);
+  if (msg.user !== username) appendMessage(`${msg.user}: ${msg.text}`);
 });
 
+// Append message to chat
 function appendMessage(text) {
   const div = document.createElement("div");
   div.classList.add("message");
