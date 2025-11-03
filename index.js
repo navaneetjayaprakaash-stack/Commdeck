@@ -1,4 +1,3 @@
-// index.js
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
@@ -7,7 +6,6 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// Initialize Firebase Admin SDK
 admin.initializeApp({
   credential: admin.credential.cert({
     type: process.env.FIREBASE_TYPE,
@@ -19,47 +17,52 @@ admin.initializeApp({
     auth_uri: process.env.FIREBASE_AUTH_URI,
     token_uri: process.env.FIREBASE_TOKEN_URI,
     auth_provider_x509_cert_url: process.env.FIREBASE_AUTH_PROVIDER_CERT_URL,
-    client_x509_cert_url: process.env.FIREBASE_CLIENT_CERT_URL,
-  }),
+    client_x509_cert_url: process.env.FIREBASE_CLIENT_CERT_URL
+  })
 });
 
 const db = admin.firestore();
-
-// Express setup
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Serve static files from public folder
 app.use(express.static("public"));
 
-// Socket.io chat logic
-io.on("connection", (socket) => {
-  console.log("A user connected:", socket.id);
+const users = {}; // socket.id -> username
 
-  // Listen for chat messages
+io.on("connection", (socket) => {
+  console.log("User connected:", socket.id);
+
+  socket.on("join", (username) => {
+    users[socket.id] = username;
+    io.emit("user list", Object.values(users));
+  });
+
   socket.on("chat message", async (msg) => {
     try {
-      // Save to Firebase
       await db.collection("messages").add({
-        text: msg,
-        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        text: msg.text,
+        user: msg.user,
+        timestamp: admin.firestore.FieldValue.serverTimestamp()
       });
-
-      // Broadcast to all clients
       io.emit("chat message", msg);
-    } catch (error) {
-      console.error("Error saving message:", error);
+    } catch (err) {
+      console.error(err);
+    }
+  });
+
+  socket.on("private message", ({ to, text }) => {
+    const targetSocket = Object.keys(users).find(id => users[id] === to);
+    if (targetSocket) {
+      io.to(targetSocket).emit("private message", { from: users[socket.id], text });
     }
   });
 
   socket.on("disconnect", () => {
-    console.log("A user disconnected:", socket.id);
+    delete users[socket.id];
+    io.emit("user list", Object.values(users));
   });
 });
 
-// Start server
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
