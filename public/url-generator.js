@@ -1,7 +1,4 @@
-// public/url-generator.js
-
 export function setupURLGenerator() {
-  // Create the UI dynamically at the bottom of sidebar
   const sidebar = document.getElementById("sidebar");
 
   const urlContainer = document.createElement("div");
@@ -34,16 +31,12 @@ export function setupURLGenerator() {
   button.addEventListener("click", () => {
     const roomName = input.value.trim();
     if (!roomName) return alert("Enter a room name");
-
     const baseURL = window.location.origin;
     const generated = `${baseURL}?room=${encodeURIComponent(roomName)}`;
     result.value = generated;
-
-    // Auto-select for copy
     result.select();
     result.setSelectionRange(0, 99999);
     document.execCommand("copy");
-
     alert("URL copied to clipboard!");
   });
 }
