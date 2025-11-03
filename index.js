@@ -1,66 +1,67 @@
-// index.js
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, addDoc, query, orderBy, onSnapshot } from "firebase/firestore";
 
-// ===== Firebase Config =====
+// Firebase config
 const firebaseConfig = {
-  apiKey: "AIzaSyDw-qqvRKmbu9R9b...", // replace with your API key
-  authDomain: "your-app.firebaseapp.com",
-  projectId: "your-app",
-  storageBucket: "your-app.appspot.com",
-  messagingSenderId: "1234567890",
-  appId: "1:1234567890:web:abcdef123456"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_BUCKET",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const messagesRef = collection(db, "messages");
 
-// ===== DOM Elements =====
+const messagesRef = collection(db, "messages");
+const q = query(messagesRef, orderBy("timestamp"));
+
+// Get username from URL
+const urlParams = new URLSearchParams(window.location.search);
+let username = urlParams.get("username") || "Guest_" + Math.floor(Math.random() * 1000);
+document.getElementById("user-display").textContent = username;
+
+// DOM elements
+const chatInput = document.getElementById("chatInput");
+const sendBtn = document.getElementById("sendBtn");
 const chatMessages = document.getElementById("chat-messages");
-const chatInput = document.getElementById("chat-input");
-const sendBtn = document.getElementById("send-btn");
 const themeSelect = document.getElementById("themeSelect");
 const body = document.body;
 
-// ===== Theme Handling =====
-themeSelect.addEventListener("change", () => {
-  // remove previous theme classes
-  body.className = ""; 
-  body.classList.add(themeSelect.value);
-});
-
-// ===== Send Message =====
+// Send message
 sendBtn.addEventListener("click", async () => {
   const text = chatInput.value.trim();
   if (!text) return;
-  await addDoc(messagesRef, { text, timestamp: Date.now() });
+  await addDoc(messagesRef, { text, timestamp: Date.now(), user: username });
   chatInput.value = "";
 });
 
-// ===== Listen to Messages =====
-const q = query(messagesRef, orderBy("timestamp", "asc"));
+// Listen to messages
 onSnapshot(q, (snapshot) => {
-  chatMessages.innerHTML = ""; // clear
+  chatMessages.innerHTML = "";
   snapshot.forEach(doc => {
     const msg = doc.data();
     const div = document.createElement("div");
     div.classList.add("message");
-    div.textContent = msg.text;
+    div.textContent = msg.user ? `${msg.user}: ${msg.text}` : msg.text;
     chatMessages.appendChild(div);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
   });
+  chatMessages.scrollTop = chatMessages.scrollHeight;
 });
 
-// ===== RGB Panel (optional dynamic color) =====
-document.querySelectorAll("#rgb-panel input").forEach(slider => {
+// Theme selection
+themeSelect.addEventListener("change", () => {
+  body.className = themeSelect.value; // remove previous theme
+});
+
+// RGB sliders
+const rSlider = document.getElementById("r");
+const gSlider = document.getElementById("g");
+const bSlider = document.getElementById("b");
+
+[rSlider, gSlider, bSlider].forEach(slider => {
   slider.addEventListener("input", () => {
-    const r = document.getElementById("r").value;
-    const g = document.getElementById("g").value;
-    const b = document.getElementById("b").value;
-    body.style.setProperty("--custom-rgb", `${r}, ${g}, ${b}`);
+    const r = rSlider.value, g = gSlider.value, b = bSlider.value;
+    body.style.backgroundColor = `rgb(${r},${g},${b})`;
   });
 });
-
-// ===== Auto-focus input =====
-chatInput.focus();
