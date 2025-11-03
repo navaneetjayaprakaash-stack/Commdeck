@@ -1,0 +1,304 @@
+/* ===== General Styles ===== */
+body {
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f0f0f0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.hidden {
+  display: none;
+}
+
+/* ===== Chat Layout ===== */
+#chat-container {
+  display: flex;
+  flex: 1;
+  height: 100%;
+}
+
+/* Sidebar */
+#sidebar {
+  width: 220px;
+  background-color: #eee;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+/* Sidebar sections */
+#sidebar h3 {
+  margin: 5px 0;
+}
+
+#sidebar select, #sidebar button {
+  width: 100%;
+  padding: 5px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+}
+
+/* User list */
+#userList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+#userList li {
+  padding: 5px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+#userList li:hover {
+  background-color: #ddd;
+}
+
+/* Main Chat Area */
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+#chat-header {
+  padding: 10px 15px;
+  background-color: #222;
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Chat Messages */
+#chat-messages {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  background-color: #fff;
+}
+
+/* Chat Input */
+#chat-input-container {
+  display: flex;
+  padding: 10px 15px;
+  background-color: #eee;
+}
+
+#chat-input-container input[type="text"] {
+  flex: 1;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+#chat-input-container button {
+  margin-left: 10px;
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+/* RGB Panel */
+#rgb-panel {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 10px;
+  background-color: #ddd;
+}
+
+#rgb-panel input[type="range"] {
+  width: 100px;
+}
+
+/* URL Generator */
+#url-generator {
+  display: flex;
+  gap: 5px;
+  padding: 10px;
+  background-color: #ccc;
+}
+
+#url-generator input[type="text"] {
+  flex: 1;
+  padding: 5px;
+  border-radius: 6px;
+  border: 1px solid #999;
+}
+
+#url-generator button {
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* Messages */
+.message {
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  max-width: 70%;
+  word-wrap: break-word;
+}
+
+.message.system {
+  font-style: italic;
+  color: #555;
+}
+
+/* ===== 20 Themes ===== */
+
+/* 1. Galactic Purple */
+.theme-galactic-purple body { background-color: #2c003e; color: #f0e5ff; }
+.theme-galactic-purple #chat-header { background-color: #4b0082; }
+.theme-galactic-purple #chat-messages { background-color: #2c003e; }
+.theme-galactic-purple #chat-input-container { background-color: #3a005f; }
+.theme-galactic-purple #sidebar { background-color: #3a005f; }
+
+/* 2. Electric Sunset */
+.theme-electric-sunset body { background-color: #ff5f6d; color: #fff7f0; }
+.theme-electric-sunset #chat-header { background-color: #ffc371; }
+.theme-electric-sunset #chat-messages { background-color: #ff5f6d; }
+.theme-electric-sunset #chat-input-container { background-color: #ffa07a; }
+.theme-electric-sunset #sidebar { background-color: #ffa07a; }
+
+/* 3. Neon Cyberpunk */
+.theme-neon-cyberpunk body { background-color: #0f0f0f; color: #39ff14; }
+.theme-neon-cyberpunk #chat-header { background-color: #ff00ff; }
+.theme-neon-cyberpunk #chat-messages { background-color: #0f0f0f; }
+.theme-neon-cyberpunk #chat-input-container { background-color: #1a1a1a; }
+.theme-neon-cyberpunk #sidebar { background-color: #1a1a1a; }
+
+/* 4. Cosmic Ocean */
+.theme-cosmic-ocean body { background-color: #001f3f; color: #7FDBFF; }
+.theme-cosmic-ocean #chat-header { background-color: #0074D9; }
+.theme-cosmic-ocean #chat-messages { background-color: #001f3f; }
+.theme-cosmic-ocean #chat-input-container { background-color: #003366; }
+.theme-cosmic-ocean #sidebar { background-color: #003366; }
+
+/* 5. Lava Glow */
+.theme-lava-glow body { background-color: #330000; color: #ff4500; }
+.theme-lava-glow #chat-header { background-color: #ff6347; }
+.theme-lava-glow #chat-messages { background-color: #660000; }
+.theme-lava-glow #chat-input-container { background-color: #800000; }
+.theme-lava-glow #sidebar { background-color: #800000; }
+
+/* 6. Aurora Borealis */
+.theme-aurora-borealis body { background-color: #0b3d91; color: #a8ffeb; }
+.theme-aurora-borealis #chat-header { background-color: #00ffcc; }
+.theme-aurora-borealis #chat-messages { background-color: #051f54; }
+.theme-aurora-borealis #chat-input-container { background-color: #033f6f; }
+.theme-aurora-borealis #sidebar { background-color: #033f6f; }
+
+/* 7. Radiant Gold */
+.theme-radiant-gold body { background-color: #2b1d00; color: #ffd700; }
+.theme-radiant-gold #chat-header { background-color: #ffb800; }
+.theme-radiant-gold #chat-messages { background-color: #3a2a00; }
+.theme-radiant-gold #chat-input-container { background-color: #5c4300; }
+.theme-radiant-gold #sidebar { background-color: #5c4300; }
+
+/* 8. Cyber Teal */
+.theme-cyber-teal body { background-color: #003333; color: #00ffe0; }
+.theme-cyber-teal #chat-header { background-color: #00cccc; }
+.theme-cyber-teal #chat-messages { background-color: #002222; }
+.theme-cyber-teal #chat-input-container { background-color: #004444; }
+.theme-cyber-teal #sidebar { background-color: #004444; }
+
+/* 9. Bubblegum Pop */
+.theme-bubblegum-pop body { background-color: #ff66cc; color: #fff; }
+.theme-bubblegum-pop #chat-header { background-color: #ff3399; }
+.theme-bubblegum-pop #chat-messages { background-color: #ff99cc; }
+.theme-bubblegum-pop #chat-input-container { background-color: #ff66b2; }
+.theme-bubblegum-pop #sidebar { background-color: #ff66b2; }
+
+/* 10. Toxic Lime */
+.theme-toxic-lime body { background-color: #1b3300; color: #bfff00; }
+.theme-toxic-lime #chat-header { background-color: #66ff33; }
+.theme-toxic-lime #chat-messages { background-color: #264d00; }
+.theme-toxic-lime #chat-input-container { background-color: #336600; }
+.theme-toxic-lime #sidebar { background-color: #336600; }
+
+/* 11. Firefly Night */
+.theme-firefly-night body { background-color: #050505; color: #ffff33; }
+.theme-firefly-night #chat-header { background-color: #333300; }
+.theme-firefly-night #chat-messages { background-color: #0a0a0a; }
+.theme-firefly-night #chat-input-container { background-color: #1a1a00; }
+.theme-firefly-night #sidebar { background-color: #1a1a00; }
+
+/* 12. Magenta Storm */
+.theme-magenta-storm body { background-color: #330033; color: #ff99ff; }
+.theme-magenta-storm #chat-header { background-color: #ff33ff; }
+.theme-magenta-storm #chat-messages { background-color: #4d004d; }
+.theme-magenta-storm #chat-input-container { background-color: #660066; }
+.theme-magenta-storm #sidebar { background-color: #660066; }
+
+/* 13. Electric Cyan */
+.theme-electric-cyan body { background-color: #001111; color: #00ffff; }
+.theme-electric-cyan #chat-header { background-color: #00cccc; }
+.theme-electric-cyan #chat-messages { background-color: #002222; }
+.theme-electric-cyan #chat-input-container { background-color: #003333; }
+.theme-electric-cyan #sidebar { background-color: #003333; }
+
+/* 14. Starry Violet */
+.theme-starry-violet body { background-color: #1a0033; color: #cc99ff; }
+.theme-starry-violet #chat-header { background-color: #6600cc; }
+.theme-starry-violet #chat-messages { background-color: #330066; }
+.theme-starry-violet #chat-input-container { background-color: #4d0066; }
+.theme-starry-violet #sidebar { background-color: #4d0066; }
+
+/* 15. Solar Flare */
+.theme-solar-flare body { background-color: #331a00; color: #ffcc00; }
+.theme-solar-flare #chat-header { background-color: #ff9900; }
+.theme-solar-flare #chat-messages { background-color: #4d3300; }
+.theme-solar-flare #chat-input-container { background-color: #663d00; }
+.theme-solar-flare #sidebar { background-color: #663d00; }
+
+/* 16. Cosmic Pink */
+.theme-cosmic-pink body { background-color: #33001a; color: #ff66ff; }
+.theme-cosmic-pink #chat-header { background-color: #ff00cc; }
+.theme-cosmic-pink #chat-messages { background-color: #4d0033; }
+.theme-cosmic-pink #chat-input-container { background-color: #660066; }
+.theme-cosmic-pink #sidebar { background-color: #660066; }
+
+/* 17. Midnight Blue */
+.theme-midnight-blue body { background-color: #000033; color: #99ccff; }
+.theme-midnight-blue #chat-header { background-color: #000099; }
+.theme-midnight-blue #chat-messages { background-color: #000066; }
+.theme-midnight-blue #chat-input-container { background-color: #000080; }
+.theme-midnight-blue #sidebar { background-color: #000080; }
+
+/* 18. Inferno Red */
+.theme-inferno-red body { background-color: #330000; color: #ff3300; }
+.theme-inferno-red #chat-header { background-color: #ff0000; }
+.theme-inferno-red #chat-messages { background-color: #660000; }
+.theme-inferno-red #chat-input-container { background-color: #800000; }
+.theme-inferno-red #sidebar { background-color: #800000; }
+
+/* 19. Prism Rainbow */
+.theme-prism-rainbow body { background-color: #111111; color: #ffffff; }
+.theme-prism-rainbow #chat-header { background: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet); }
+.theme-prism-rainbow #chat-messages { background-color: #111111; }
+.theme-prism-rainbow #chat-input-container { background-color: #222222; }
+.theme-prism-rainbow #sidebar { background-color: #222222; }
+
+/* 20. Hyperspace Neon */
+.theme-hyperspace-neon body { background-color: #000000; color: #39fffc; }
+.theme-hyperspace-neon #chat-header { background-color: #ff1493; }
+.theme-hyperspace-neon #chat-messages { background-color: #0d0d0d; }
+.theme-hyperspace-neon #chat-input-container { background-color: #1a1a1a; }
+.theme-hyperspace-neon #sidebar { background-color: #1a1a1a; }
