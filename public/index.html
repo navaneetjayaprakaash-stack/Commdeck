@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Chat Room</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="loginScreen">
+    <h2>Enter Your Name</h2>
+    <input type="text" id="usernameInput" placeholder="Your name">
+    <button id="enterBtn">Enter Chat</button>
+  </div>
+
+  <div id="chatScreen" class="hidden">
+    <header>
+      <h1 id="roomName">Room: </h1>
+      <div>
+        <input type="text" id="nameInput" placeholder="Change name">
+        <button id="changeNameBtn">Change</button>
+      </div>
+      <div>
+        <select id="themeSelect"></select>
+      </div>
+    </header>
+
+    <aside>
+      <h3>Rooms</h3>
+      <select id="roomSelect"></select>
+      <button id="newRoomBtn">+ New Private Room</button>
+
+      <h3>Users</h3>
+      <ul id="userList"></ul>
+    </aside>
+
+    <main>
+      <div id="chatContainer"></div>
+      <form id="messageForm">
+        <input type="text" id="messageInput" placeholder="Type a message">
+        <button type="submit">Send</button>
+      </form>
+    </main>
+  </div>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>
