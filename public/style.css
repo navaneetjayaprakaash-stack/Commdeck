@@ -207,3 +207,99 @@ main { flex: 1; display: flex; flex-direction: column; }
 .theme-hyperspace-neon #chat-header { background-color: #262626; }
 .theme-hyperspace-neon #chat-messages { background-color: #0d0d0d; }
 .theme-hyperspace-neon #chat-input-container { background-color: #1a1a1a; }
+/* ===== DM Messages ===== */
+.message.dm {
+  background-color: rgba(255, 255, 0, 0.2); /* semi-transparent yellow */
+  color: #fff;
+  border-left: 4px solid #ffd700;
+}
+
+/* ===== System Messages ===== */
+.message.system {
+  background-color: rgba(187, 134, 252, 0.2); /* semi-transparent purple */
+  color: #bb86fc;
+  font-style: italic;
+  border-left: 4px solid #bb86fc;
+}
+
+/* ===== Theme-specific adjustments for DM messages ===== */
+
+/* Galactic Purple */
+.theme-galactic-purple .message.dm { background-color: rgba(255, 255, 0, 0.2); color: #fff; }
+.theme-galactic-purple .message.system { background-color: rgba(187, 134, 252, 0.2); color: #bb86fc; }
+
+/* Electric Sunset */
+.theme-electric-sunset .message.dm { background-color: rgba(255, 255, 0, 0.2); color: #000; }
+.theme-electric-sunset .message.system { background-color: rgba(255, 165, 0, 0.2); color: #fff; }
+
+/* Neon Cyberpunk */
+.theme-neon-cyberpunk .message.dm { background-color: rgba(57, 255, 20, 0.2); color: #39ff14; }
+.theme-neon-cyberpunk .message.system { background-color: rgba(255, 20, 147, 0.2); color: #ff1493; }
+
+/* Cosmic Ocean */
+.theme-cosmic-ocean .message.dm { background-color: rgba(127, 219, 255, 0.2); color: #7fdbff; }
+.theme-cosmic-ocean .message.system { background-color: rgba(0, 128, 255, 0.2); color: #00bfff; }
+
+/* Lava Glow */
+.theme-lava-glow .message.dm { background-color: rgba(255, 69, 0, 0.2); color: #ff4500; }
+.theme-lava-glow .message.system { background-color: rgba(255, 140, 0, 0.2); color: #ff8c00; }
+
+/* Aurora Borealis */
+.theme-aurora-borealis .message.dm { background-color: rgba(0, 255, 204, 0.2); color: #00ffcc; }
+.theme-aurora-borealis .message.system { background-color: rgba(0, 255, 128, 0.2); color: #00ff80; }
+
+/* Radiant Gold */
+.theme-radiant-gold .message.dm { background-color: rgba(255, 215, 0, 0.2); color: #ffd700; }
+.theme-radiant-gold .message.system { background-color: rgba(255, 223, 0, 0.2); color: #ffe600; }
+
+/* Cyber Teal */
+.theme-cyber-teal .message.dm { background-color: rgba(0, 255, 255, 0.2); color: #00ffff; }
+.theme-cyber-teal .message.system { background-color: rgba(0, 200, 200, 0.2); color: #00cccc; }
+
+/* Bubblegum Pop */
+.theme-bubblegum-pop .message.dm { background-color: rgba(255, 105, 180, 0.2); color: #ff1493; }
+.theme-bubblegum-pop .message.system { background-color: rgba(255, 182, 193, 0.2); color: #ff69b4; }
+
+/* Toxic Lime */
+.theme-toxic-lime .message.dm { background-color: rgba(204, 255, 0, 0.2); color: #ccff00; }
+.theme-toxic-lime .message.system { background-color: rgba(153, 255, 51, 0.2); color: #99ff33; }
+
+/* Firefly Night */
+.theme-firefly-night .message.dm { background-color: rgba(255, 255, 51, 0.2); color: #ffff33; }
+.theme-firefly-night .message.system { background-color: rgba(255, 255, 102, 0.2); color: #ffff66; }
+
+/* Magenta Storm */
+.theme-magenta-storm .message.dm { background-color: rgba(255, 0, 255, 0.2); color: #ff00ff; }
+.theme-magenta-storm .message.system { background-color: rgba(204, 0, 204, 0.2); color: #cc00cc; }
+
+/* Electric Cyan */
+.theme-electric-cyan .message.dm { background-color: rgba(0, 255, 255, 0.2); color: #00ffff; }
+.theme-electric-cyan .message.system { background-color: rgba(0, 204, 204, 0.2); color: #00cccc; }
+
+/* Starry Violet */
+.theme-starry-violet .message.dm { background-color: rgba(177, 156, 217, 0.2); color: #b19cd9; }
+.theme-starry-violet .message.system { background-color: rgba(155, 120, 255, 0.2); color: #9b78ff; }
+
+/* Solar Flare */
+.theme-solar-flare .message.dm { background-color: rgba(255, 102, 0, 0.2); color: #ff6600; }
+.theme-solar-flare .message.system { background-color: rgba(255, 128, 0, 0.2); color: #ff8000; }
+
+/* Cosmic Pink */
+.theme-cosmic-pink .message.dm { background-color: rgba(255, 102, 204, 0.2); color: #ff66cc; }
+.theme-cosmic-pink .message.system { background-color: rgba(255, 51, 153, 0.2); color: #ff3399; }
+
+/* Midnight Blue */
+.theme-midnight-blue .message.dm { background-color: rgba(102, 204, 255, 0.2); color: #66ccff; }
+.theme-midnight-blue .message.system { background-color: rgba(51, 153, 255, 0.2); color: #3399ff; }
+
+/* Inferno Red */
+.theme-inferno-red .message.dm { background-color: rgba(255, 51, 0, 0.2); color: #ff3300; }
+.theme-inferno-red .message.system { background-color: rgba(255, 102, 0, 0.2); color: #ff6600; }
+
+/* Prism Rainbow */
+.theme-prism-rainbow .message.dm { background-color: rgba(255, 0, 255, 0.2); color: #ff00ff; }
+.theme-prism-rainbow .message.system { background-color: rgba(0, 255, 255, 0.2); color: #00ffff; }
+
+/* Hyperspace Neon */
+.theme-hyperspace-neon .message.dm { background-color: rgba(0, 255, 234, 0.2); color: #00ffea; }
+.theme-hyperspace-neon .message.system { background-color: rgba(0, 200, 180, 0.2); color: #00c8b4; }
