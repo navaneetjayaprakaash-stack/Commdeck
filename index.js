@@ -6,21 +6,28 @@ const { Server } = require("socket.io");
 const admin = require("firebase-admin");
 
 // ===== Firebase Setup =====
-// Parse SERVICE_ACCOUNT_KEY from environment
+let serviceAccountRaw = process.env.SERVICE_ACCOUNT_KEY;
+
+if (!serviceAccountRaw) {
+  console.error("❌ SERVICE_ACCOUNT_KEY is missing from environment variables!");
+  process.exit(1);
+}
+
 let serviceAccount;
 try {
-  serviceAccount = JSON.parse(process.env.SERVICE_ACCOUNT_KEY);
+  serviceAccount = JSON.parse(serviceAccountRaw);
 
-  // Fix escaped newlines in private key
-  if (serviceAccount.private_key.includes("\\n")) {
+  // Fix escaped \n in private key
+  if (typeof serviceAccount.private_key === "string") {
     serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, "\n");
+  } else {
+    throw new Error("Missing private_key field in service account JSON.");
   }
 } catch (err) {
   console.error("❌ Failed to parse SERVICE_ACCOUNT_KEY:", err);
   process.exit(1);
 }
 
-// Initialize Firebase
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
@@ -33,6 +40,7 @@ const server = http.createServer(app);
 const io = new Server(server);
 const PORT = process.env.PORT || 3000;
 
+// Serve static files from /public
 app.use(express.static("public"));
 
 // ===== User + Room Tracking =====
@@ -51,54 +59,69 @@ function emitRoomUsers(room) {
 
 // ===== Socket.io Logic =====
 io.on("connection", socket => {
-  console.log("connected:", socket.id);
+  console.log("✅ New connection:", socket.id);
 
+  // Join room
   socket.on("joinRoom", async ({ room, uid, name }) => {
-    if (!room) room = "general";
+    try {
+      if (!room) room = "general";
+      const prev = users[socket.id];
+      if (prev && prev.room) socket.leave(prev.room);
 
-    const prev = users[socket.id];
-    if (prev && prev.room) socket.leave(prev.room);
+      rooms.add(room);
+      users[socket.id] = { uid, name, room };
+      uidToSocket[uid] = socket.id;
+      socket.join(room);
 
-    rooms.add(room);
-    users[socket.id] = { uid, name, room };
-    uidToSocket[uid] = socket.id;
-    socket.join(room);
+      // Announce join
+      io.to(room).emit("chatMessage", {
+        from: "system",
+        text: `${name} joined ${room}`,
+        uid: null,
+        ts: Date.now(),
+        system: true,
+      });
 
-    io.to(room).emit("chatMessage", {
-      from: "system",
-      text: `${name} joined ${room}`,
-      uid: null,
-      ts: Date.now(),
-      system: true,
-    });
+      emitRoomList();
+      emitRoomUsers(room);
 
-    emitRoomList();
-    emitRoomUsers(room);
+      // Load history
+      const messagesSnap = await db
+        .collection("rooms")
+        .doc(room)
+        .collection("messages")
+        .orderBy("ts", "asc")
+        .limit(100)
+        .get();
 
-    // Load last 100 messages
-    const messagesSnap = await db
-      .collection("rooms")
-      .doc(room)
-      .collection("messages")
-      .orderBy("ts", "asc")
-      .limit(100)
-      .get();
-
-    const history = messagesSnap.docs.map(d => d.data());
-    socket.emit("chatHistory", history);
+      const history = messagesSnap.docs.map(d => d.data());
+      socket.emit("chatHistory", history);
+    } catch (err) {
+      console.error("❌ Error in joinRoom:", err);
+      socket.emit("errorMessage", "Could not join room.");
+    }
   });
 
+  // Handle chat messages
   socket.on("chatMessage", async msg => {
-    if (!msg.room) msg.room = users[socket.id]?.room || "general";
-    await db.collection("rooms").doc(msg.room).collection("messages").add(msg);
-    io.to(msg.room).emit("chatMessage", msg);
+    try {
+      if (!msg.room) msg.room = users[socket.id]?.room || "general";
+      await db.collection("rooms").doc(msg.room).collection("messages").add(msg);
+      io.to(msg.room).emit("chatMessage", msg);
+    } catch (err) {
+      console.error("❌ Error saving chat message:", err);
+    }
   });
 
+  // Private messages
   socket.on("privateMessage", ({ toUid, msg }) => {
     const toSocket = uidToSocket[toUid];
-    if (toSocket) io.to(toSocket).emit("privateMessage", msg);
+    if (toSocket) {
+      io.to(toSocket).emit("privateMessage", msg);
+    }
   });
 
+  // Leave room
   socket.on("leaveRoom", () => {
     const user = users[socket.id];
     if (user) {
@@ -116,6 +139,7 @@ io.on("connection", socket => {
     }
   });
 
+  // Disconnect
   socket.on("disconnect", () => {
     const user = users[socket.id];
     if (user) {
@@ -131,9 +155,9 @@ io.on("connection", socket => {
       });
       emitRoomUsers(room);
     }
-    console.log("disconnected:", socket.id);
+    console.log("❌ Disconnected:", socket.id);
   });
 });
 
 // ===== Start server =====
-server.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
