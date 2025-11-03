@@ -1,72 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Chat Room</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dark Multi-Theme Chat</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Login Screen -->
-  <div id="loginScreen">
-    <h2>Enter Your Name</h2>
-    <input type="text" id="usernameInput" placeholder="Your name">
-    <button id="enterBtn">Enter Chat</button>
-  </div>
+<div id="chatScreen">
+  <div id="chat-container">
+    <!-- Sidebar -->
+    <div id="sidebar">
+      <h3>Themes</h3>
+      <select id="themeSelect">
+        <option value="">Default Dark</option>
+        <option value="theme-galactic-purple">Galactic Purple</option>
+        <option value="theme-electric-sunset">Electric Sunset</option>
+        <option value="theme-neon-cyberpunk">Neon Cyberpunk</option>
+        <option value="theme-cosmic-ocean">Cosmic Ocean</option>
+        <option value="theme-lava-glow">Lava Glow</option>
+        <option value="theme-aurora-borealis">Aurora Borealis</option>
+        <option value="theme-radiant-gold">Radiant Gold</option>
+        <option value="theme-cyber-teal">Cyber Teal</option>
+        <option value="theme-bubblegum-pop">Bubblegum Pop</option>
+        <option value="theme-toxic-lime">Toxic Lime</option>
+        <option value="theme-firefly-night">Firefly Night</option>
+        <option value="theme-magenta-storm">Magenta Storm</option>
+        <option value="theme-electric-cyan">Electric Cyan</option>
+        <option value="theme-starry-violet">Starry Violet</option>
+        <option value="theme-solar-flare">Solar Flare</option>
+        <option value="theme-cosmic-pink">Cosmic Pink</option>
+        <option value="theme-midnight-blue">Midnight Blue</option>
+        <option value="theme-inferno-red">Inferno Red</option>
+        <option value="theme-prism-rainbow">Prism Rainbow</option>
+        <option value="theme-hyperspace-neon">Hyperspace Neon</option>
+      </select>
 
-  <!-- Chat Screen -->
-  <div id="chatScreen" class="hidden">
-    <div id="chat-container">
+      <h3>RGB</h3>
+      <div id="rgb-panel">
+        <input type="range" id="r" min="0" max="255">
+        <input type="range" id="g" min="0" max="255">
+        <input type="range" id="b" min="0" max="255">
+      </div>
 
-      <!-- Sidebar -->
-      <aside id="sidebar">
-        <div id="room-section">
-          <h3>Rooms</h3>
-          <select id="roomSelect"></select>
-          <button id="newRoomBtn">+ New Private Room</button>
-        </div>
-
-        <div id="user-section">
-          <h3>Users</h3>
-          <ul id="userList"></ul>
-        </div>
-      </aside>
-
-      <!-- Main Chat Area -->
-      <main>
-        <header id="chat-header">
-          <h1 id="roomName">Room: General</h1>
-          <div id="name-change">
-            <input type="text" id="nameInput" placeholder="Change name">
-            <button id="changeNameBtn">Change</button>
-          </div>
-          <div id="theme-selector-container">
-            <select id="themeSelect"></select>
-          </div>
-        </header>
-
-        <div id="chat-messages"></div>
-
-        <form id="chat-input-container">
-          <input type="text" id="messageInput" placeholder="Type a message">
-          <button type="submit">Send</button>
-        </form>
-
-        <!-- RGB Panel -->
-        <div id="rgb-panel">
-          <label>R: <input type="range" id="rSlider" min="0" max="255"></label>
-          <label>G: <input type="range" id="gSlider" min="0" max="255"></label>
-          <label>B: <input type="range" id="bSlider" min="0" max="255"></label>
-          <button id="resetTheme">Reset Theme</button>
-        </div>
-      </main>
+      <h3 id="user-display">Username</h3>
     </div>
-  </div>
 
-  <!-- Scripts -->
-  <script type="module" src="script.js"></script>
-  <script type="module" src="rgb-theme.js"></script>
-  <script type="module" src="dm.js"></script>
-  <script type="module" src="url-generator.js"></script>
+    <!-- Main Chat Area -->
+    <main>
+      <div id="chat-header">
+        <h2>Chat Room</h2>
+      </div>
+      <div id="chat-messages"></div>
+      <div id="chat-input-container">
+        <input type="text" id="chatInput" placeholder="Type a message...">
+        <button id="sendBtn">Send</button>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script type="module" src="index.js"></script>
 </body>
 </html>
