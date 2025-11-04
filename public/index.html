@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Multi-Room Chat</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-Room Chat + DMs</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -20,18 +20,24 @@
       <label for="themeSelect">Theme:</label>
       <select id="themeSelect" class="styled-select"></select>
       <button id="generateLinkBtn" class="styled-btn">Generate Link</button>
+      <input id="newRoomInput" placeholder="New room name" class="styled-input">
+      <button id="joinRoomBtn" class="styled-btn">Join Room</button>
     </div>
   </header>
 
-  <!-- Main Chat Area -->
+  <!-- Main Chat + Sidebar -->
   <main id="chatContent">
     <!-- Messages Panel -->
     <section id="messagesContainer">
       <div id="gcMessages" class="messages-panel"></div>
-      <div id="dmMessages" class="messages-panel hidden"></div>
+      <div id="dmMessagesContainer">
+        <h4>Direct Messages</h4>
+        <div id="dmList" class="dm-list"></div>
+        <div id="dmMessages" class="messages-panel"></div>
+      </div>
     </section>
 
-    <!-- Sidebar / User List -->
+    <!-- Sidebar / Users -->
     <aside id="sidebar">
       <h3>Users in Room</h3>
       <ul id="userList"></ul>
