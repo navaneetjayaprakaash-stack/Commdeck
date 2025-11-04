@@ -5,35 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Multi-Room Chat + DMs</title>
 <link rel="stylesheet" href="style.css">
-<!-- Firebase -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_BUCKET",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  window.db = getFirestore(app);
-</script>
 </head>
-<body>
+<body data-theme="sunset-glow">
+
 <div id="container">
 
   <!-- Top Bar -->
   <header id="topBar">
     <div class="user-controls">
-      Username: <b id="currentUsername"></b>
+      <span>Username: <b id="currentUsername"></b></span>
       <button id="changeUsernameBtn" class="styled-btn">Change Username</button>
     </div>
     <div class="room-controls">
-      Theme:
+      <label for="themeSelect">Theme:</label>
       <select id="themeSelect" class="styled-select"></select>
       <button id="generateLinkBtn" class="styled-btn">Generate Link</button>
       <input id="newRoomInput" placeholder="New room name" class="styled-input">
@@ -43,7 +27,7 @@
 
   <!-- Main Content -->
   <main id="chatContent">
-    <!-- Messages -->
+    <!-- Group Chat Messages -->
     <section id="messagesContainer">
       <div id="gcMessages" class="messages-panel"></div>
     </section>
@@ -52,12 +36,13 @@
     <aside id="sidebar">
       <h3>Group Chats</h3>
       <ul id="gcList"></ul>
+
       <h3>Users</h3>
       <ul id="userList"></ul>
     </aside>
   </main>
 
-  <!-- Input -->
+  <!-- Input Area -->
   <footer id="inputArea">
     <input id="messageInput" type="text" placeholder="Type a message..." autocomplete="off">
     <button id="sendBtn" class="styled-btn">Send</button>
@@ -65,17 +50,20 @@
 </div>
 
 <!-- DM Modal -->
-<div id="dmModal" class="modal hidden">
-  <div class="modal-content">
-    <div><b id="dmHeader"></b> <button id="dmCloseBtn" class="styled-btn">Close</button></div>
-    <div id="dmMessages" class="messages-panel"></div>
-    <div class="dm-input-area">
-      <input id="dmMessageInput" type="text" placeholder="Type DM...">
-      <button id="dmSendBtn" class="styled-btn">Send</button>
-    </div>
+<div id="dmModal" class="hidden" style="position:fixed;top:10%;left:50%;transform:translateX(-50%);width:400px;background:var(--sidebar-bg);border:2px solid var(--separator);border-radius:10px;display:flex;flex-direction:column;z-index:1000;">
+  <div style="display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid var(--separator);">
+    <span id="dmHeader">DM</span>
+    <button id="dmCloseBtn" class="styled-btn">Close</button>
+  </div>
+  <div id="dmMessages" class="messages-panel" style="flex:1;padding:10px;overflow-y:auto;"></div>
+  <div style="display:flex;padding:10px;border-top:1px solid var(--separator);">
+    <input id="dmMessageInput" type="text" placeholder="Type a DM..." style="flex:1;border:none;border-radius:20px 0 0 20px;padding:10px;background:var(--input-bg);color:var(--text);">
+    <button id="dmSendBtn" class="styled-btn" style="border-radius:0 20px 20px 0;">Send</button>
   </div>
 </div>
 
 <script type="module" src="script.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+
 </body>
 </html>
