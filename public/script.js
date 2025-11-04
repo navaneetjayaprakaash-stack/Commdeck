@@ -1,5 +1,3 @@
-import { db, collection, addDoc, query, orderBy, onSnapshot } from "../firebase.js";
-
 const socket = io();
 
 // Auto-generated username if none
@@ -47,8 +45,8 @@ const themes = [
 // Populate theme dropdown
 themes.forEach(t => {
   const opt = document.createElement("option");
-  opt.value = t.id;       // applies CSS variables
-  opt.textContent = t.name; // displayed in dropdown
+  opt.value = t.id;
+  opt.textContent = t.name;
   themeSelect.appendChild(opt);
 });
 
@@ -69,15 +67,30 @@ if (savedTheme) {
 socket.emit("joinRoom", { username, room });
 
 // Send message
-sendBtn.onclick = () => {
+function sendMessage() {
   const text = messageInput.value.trim();
   if (!text) return;
   socket.emit("chatMessage", { user: username, text, room });
   messageInput.value = "";
-};
+}
+
+sendBtn.onclick = sendMessage;
+messageInput.addEventListener("keypress", e => {
+  if (e.key === "Enter") sendMessage();
+});
 
 // Receive messages
-socket.on("chatMessage", addMessage);
+socket.on("chatMessage", msg => {
+  const div = document.createElement("div");
+  div.classList.add("message");
+  if (msg.user === "System") div.classList.add("system");
+  else if (msg.user === username) div.classList.add("self");
+  else div.classList.add("other");
+
+  div.innerHTML = msg.user === "System" ? msg.text : `<b>${msg.user}:</b> ${msg.text}`;
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+});
 
 // Update user list
 socket.on("userList", users => {
@@ -110,15 +123,3 @@ generateLinkBtn.onclick = () => {
   navigator.clipboard.writeText(url);
   alert("Room link copied: " + url);
 };
-
-// Add message to chat
-function addMessage(msg) {
-  const div = document.createElement("div");
-  div.classList.add("message");
-  if (msg.user === "System") div.classList.add("system");
-  else if (msg.user === username) div.classList.add("self");
-  else div.classList.add("other");
-  div.innerHTML = msg.user === "System" ? msg.text : `<b>${msg.user}:</b> ${msg.text}`;
-  messagesEl.appendChild(div);
-  messagesEl.scrollTop = messagesEl.scrollHeight;
-}
