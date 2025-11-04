@@ -1,78 +1,79 @@
 import { db, collection, addDoc, query, orderBy, onSnapshot } from "../firebase.js";
 
 const socket = io();
-let username = "";
-let room = "";
+let username = "User"+Math.floor(Math.random()*1000);
+let room = new URLSearchParams(window.location.search).get("room") || "general";
 
-// 20 themes
-const themes = ["default","red","green","blue","orange","purple","pink","teal","cyan","yellow","lime","indigo","violet","magenta","brown","gray","lightblue","darkred","darkgreen","darkblue"];
+const messagesEl = document.getElementById("messages");
+const userListEl = document.getElementById("userList");
+const currentUsernameEl = document.getElementById("currentUsername");
+const sendBtn = document.getElementById("sendBtn");
+const messageInput = document.getElementById("messageInput");
+const changeUsernameBtn = document.getElementById("changeUsernameBtn");
+const generateLinkBtn = document.getElementById("generateLinkBtn");
 const themeSelect = document.getElementById("themeSelect");
-themes.forEach(t => {
-  const opt = document.createElement("option");
-  opt.value = t; opt.textContent = t;
-  themeSelect.appendChild(opt);
-});
-themeSelect.onchange = () => {
-  document.body.setAttribute("data-theme", themeSelect.value);
-};
 
-// URL ?room=XYZ
-const urlParams = new URLSearchParams(window.location.search);
-const urlRoom = urlParams.get("room");
+currentUsernameEl.textContent=username;
 
-function joinChat() {
-  username = document.getElementById("usernameInput").value.trim();
-  room = document.getElementById("roomInput").value.trim() || urlRoom || "general";
-  if (username) {
-    document.getElementById("joinScreen").style.display = "none";
-    document.getElementById("chatScreen").style.display = "block";
-    document.getElementById("roomTitle").textContent = `Room: ${room}`;
-    socket.emit("joinRoom", { username, room });
-  } else alert("Please enter a name");
-}
+// Load 20 fancy themes
+const themes = ["theme1","theme2","theme3","theme4","theme5","theme6","theme7","theme8","theme9","theme10","theme11","theme12","theme13","theme14","theme15","theme16","theme17","theme18","theme19","theme20"];
+themes.forEach(t=>{ const opt=document.createElement("option"); opt.value=t; opt.textContent=t; themeSelect.appendChild(opt); });
+themeSelect.onchange=()=>{ document.body.setAttribute("data-theme",themeSelect.value); };
 
-function sendMessage() {
-  const message = document.getElementById("messageInput").value.trim();
-  if (message) {
-    socket.emit("chatMessage", { user: username, text: message, room });
-    document.getElementById("messageInput").value = "";
-  }
-}
+// Auto join
+socket.emit("joinRoom",{username,room});
 
 // Receive messages
-socket.on("chatMessage", (msg) => addMessage(msg));
-socket.on("loadMessages", (messages) => {
-  document.getElementById("messages").innerHTML = "";
-  messages.forEach(msg => addMessage(msg));
-});
+socket.on("chatMessage", addMessage);
+socket.on("loadMessages",(msgs)=>{ messagesEl.innerHTML=""; msgs.forEach(addMessage); });
 
-// Add message helper
+// Send message
+sendBtn.onclick=()=>{
+  const text=messageInput.value.trim();
+  if(!text) return;
+  socket.emit("chatMessage",{user:username,text,room});
+  messageInput.value="";
+};
+
 function addMessage(msg){
-  const div = document.createElement("div");
+  const div=document.createElement("div");
   div.classList.add("message");
-  if(msg.user === "System") div.classList.add("system");
-  else if(msg.user === username) div.classList.add("self");
+  if(msg.user==="System") div.classList.add("system");
+  else if(msg.user===username) div.classList.add("self");
   else div.classList.add("other");
-  div.innerHTML = msg.user === "System" ? msg.text : `<b>${msg.user}:</b> ${msg.text}`;
-  document.getElementById("messages").appendChild(div);
-  document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+  div.innerHTML=msg.user==="System"?msg.text:`<b>${msg.user}:</b> ${msg.text}`;
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop=messagesEl.scrollHeight;
 }
 
 // User list
-socket.on("userList", (users) => {
-  const ul = document.getElementById("userList");
-  ul.innerHTML = "";
-  users.forEach(u => {
+socket.on("userList", users=>{
+  userListEl.innerHTML="";
+  users.forEach(u=>{
     if(u.username===username) return;
-    const li = document.createElement("li");
-    li.textContent = u.username;
-    li.onclick = () => {
-      const text = prompt(`Send DM to ${u.username}:`);
+    const li=document.createElement("li");
+    li.textContent=u.username;
+    li.onclick=()=>{
+      const text=prompt(`Send DM to ${u.username}:`);
       if(text) socket.emit("privateMessage",{to:u.id,text});
     };
-    ul.appendChild(li);
+    userListEl.appendChild(li);
   });
 });
 
-window.joinChat = joinChat;
-window.sendMessage = sendMessage;
+// Change username
+changeUsernameBtn.onclick=()=>{
+  const newUsername=prompt("Enter new username:",username);
+  if(newUsername && newUsername!==username){
+    socket.emit("changeUsername",newUsername);
+    username=newUsername;
+    currentUsernameEl.textContent=username;
+  }
+};
+
+// Generate room link
+generateLinkBtn.onclick=()=>{
+  const url=window.location.origin+"?room="+room;
+  navigator.clipboard.writeText(url);
+  alert("Room link copied: "+url);
+};
