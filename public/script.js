@@ -2,11 +2,12 @@ const socket = io();
 
 // Auto-generated username if none
 let username = "User" + Math.floor(Math.random() * 1000);
-// Auto join room from URL ?room=xyz
 let room = new URLSearchParams(window.location.search).get("room") || "general";
+let currentDM = null; // Track active DM
 
 // DOM elements
-const messagesEl = document.getElementById("messages");
+const gcMessagesEl = document.getElementById("gcMessages");
+const dmMessagesEl = document.getElementById("dmMessages");
 const userListEl = document.getElementById("userList");
 const currentUsernameEl = document.getElementById("currentUsername");
 const sendBtn = document.getElementById("sendBtn");
@@ -70,26 +71,36 @@ socket.emit("joinRoom", { username, room });
 function sendMessage() {
   const text = messageInput.value.trim();
   if (!text) return;
-  socket.emit("chatMessage", { user: username, text, room });
+
+  const target = currentDM ? currentDM.id : null;
+  if (currentDM) {
+    socket.emit("privateMessage", { to: target, text });
+  } else {
+    socket.emit("chatMessage", { user: username, text, room });
+  }
   messageInput.value = "";
 }
-
 sendBtn.onclick = sendMessage;
-messageInput.addEventListener("keypress", e => {
-  if (e.key === "Enter") sendMessage();
-});
+messageInput.addEventListener("keypress", e => { if (e.key === "Enter") sendMessage(); });
 
 // Receive messages
 socket.on("chatMessage", msg => {
   const div = document.createElement("div");
   div.classList.add("message");
+
   if (msg.user === "System") div.classList.add("system");
   else if (msg.user === username) div.classList.add("self");
   else div.classList.add("other");
 
   div.innerHTML = msg.user === "System" ? msg.text : `<b>${msg.user}:</b> ${msg.text}`;
-  messagesEl.appendChild(div);
-  messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  if (msg.user.includes("(DM")) {
+    dmMessagesEl.appendChild(div);
+    dmMessagesEl.scrollTop = dmMessagesEl.scrollHeight;
+  } else {
+    gcMessagesEl.appendChild(div);
+    gcMessagesEl.scrollTop = gcMessagesEl.scrollHeight;
+  }
 });
 
 // Update user list
@@ -100,8 +111,10 @@ socket.on("userList", users => {
     const li = document.createElement("li");
     li.textContent = u.username;
     li.onclick = () => {
-      const text = prompt(`Send DM to ${u.username}:`);
-      if (text) socket.emit("privateMessage", { to: u.id, text });
+      currentDM = u;
+      dmMessagesEl.classList.remove("hidden");
+      gcMessagesEl.classList.add("hidden");
+      alert(`Opened DM with ${u.username}`);
     };
     userListEl.appendChild(li);
   });
