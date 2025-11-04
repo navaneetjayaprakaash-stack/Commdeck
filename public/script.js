@@ -1,14 +1,36 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-app-compat.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore-compat.js";
+
+// Firebase config
+const firebaseConfig = {
+  apiKey: "YOUR_KEY",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_BUCKET",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+firebase.initializeApp(firebaseConfig);
+const firestore = firebase.firestore();
+
 const socket = io();
 
 // Auto-generated username
 let username = "User" + Math.floor(Math.random() * 1000);
 let room = new URLSearchParams(window.location.search).get("room") || "general";
+let allRooms = [room];
 
 // DOM elements
 const gcMessagesEl = document.getElementById("gcMessages");
 const dmMessagesEl = document.getElementById("dmMessages");
+const dmModal = document.getElementById("dmModal");
+const dmHeader = document.getElementById("dmHeader");
+const dmMessageInput = document.getElementById("dmMessageInput");
+const dmSendBtn = document.getElementById("dmSendBtn");
+const dmCloseBtn = document.getElementById("dmCloseBtn");
 const dmListEl = document.getElementById("dmList");
 const userListEl = document.getElementById("userList");
+const gcListEl = document.getElementById("gcList");
 const currentUsernameEl = document.getElementById("currentUsername");
 const sendBtn = document.getElementById("sendBtn");
 const messageInput = document.getElementById("messageInput");
@@ -25,28 +47,18 @@ let currentDM = null;
 // Display username
 currentUsernameEl.textContent = username;
 
-// Named themes
+// Themes
 const themes = [
-  { id: "theme1", name: "Sunset Glow" },
-  { id: "theme2", name: "Purple Haze" },
-  { id: "theme3", name: "Deep Ocean" },
-  { id: "theme4", name: "Royal Blue" },
-  { id: "theme5", name: "Sky Breeze" },
-  { id: "theme6", name: "Hot Pink" },
-  { id: "theme7", name: "Molten Orange" },
-  { id: "theme8", name: "Golden Hour" },
-  { id: "theme9", name: "Rose Red" },
-  { id: "theme10", name: "Violet Dream" },
-  { id: "theme11", name: "Indigo Night" },
-  { id: "theme12", name: "Mystic Purple" },
-  { id: "theme13", name: "Fuchsia Glow" },
-  { id: "theme14", name: "Electric Blue" },
-  { id: "theme15", name: "Aqua Mist" },
-  { id: "theme16", name: "Magenta Pulse" },
-  { id: "theme17", name: "Blazing Orange" },
-  { id: "theme18", name: "Sunlit Gold" },
-  { id: "theme19", name: "Royal Violet" },
-  { id: "theme20", name: "Night Indigo" }
+  { id: "sunset-glow", name: "Sunset Glow" },
+  { id: "purple-haze", name: "Purple Haze" },
+  { id: "deep-ocean", name: "Deep Ocean" },
+  { id: "royal-blue", name: "Royal Blue" },
+  { id: "sky-breeze", name: "Sky Breeze" },
+  { id: "hot-pink", name: "Hot Pink" },
+  { id: "molten-orange", name: "Molten Orange" },
+  { id: "golden-hour", name: "Golden Hour" },
+  { id: "rose-red", name: "Rose Red" },
+  { id: "violet-dream", name: "Violet Dream" }
 ];
 
 // Populate theme dropdown
@@ -59,116 +71,146 @@ themes.forEach(t => {
 
 // Apply saved theme
 const savedTheme = localStorage.getItem("selectedTheme");
-if (savedTheme) {
-  document.body.setAttribute("data-theme", savedTheme);
-  themeSelect.value = savedTheme;
-}
+if (savedTheme) document.body.setAttribute("data-theme", savedTheme);
+themeSelect.value = savedTheme || themes[0].id;
 
-// Theme change
 themeSelect.onchange = () => {
   document.body.setAttribute("data-theme", themeSelect.value);
   localStorage.setItem("selectedTheme", themeSelect.value);
 };
 
-// Join room
-socket.emit("joinRoom", { username, room });
+// Firestore GC messages subscription
+let unsubscribeGC = null;
+function joinRoom(newRoom) {
+  room = newRoom;
+  if (!allRooms.includes(newRoom)) allRooms.push(newRoom);
+  renderGClist();
 
-// Send message
+  gcMessagesEl.innerHTML = "";
+  if (unsubscribeGC) unsubscribeGC();
+
+  const roomRef = firestore.collection("rooms").doc(room).collection("messages").orderBy("timestamp");
+  unsubscribeGC = roomRef.onSnapshot(snapshot => {
+    snapshot.docChanges().forEach(change => {
+      if (change.type === "added") addGCMessage(change.doc.data());
+    });
+  });
+
+  history.replaceState(null, "", "?room=" + room);
+}
+
+function addGCMessage(msg) {
+  const div = document.createElement("div");
+  div.classList.add("message");
+  if (msg.user === "System") div.classList.add("system");
+  else if (msg.user === username) div.classList.add("self");
+  else div.classList.add("other");
+  div.innerHTML = msg.user === "System" ? msg.text : `<b>${msg.user}:</b> ${msg.text}`;
+  gcMessagesEl.appendChild(div);
+  gcMessagesEl.scrollTop = gcMessagesEl.scrollHeight;
+}
+
+// GC List UI
+function renderGClist() {
+  gcListEl.innerHTML = "";
+  allRooms.forEach(r => {
+    const li = document.createElement("li");
+    li.textContent = r;
+    if (r === room) li.classList.add("active-room");
+    li.onclick = () => joinRoom(r);
+    gcListEl.appendChild(li);
+  });
+}
+
+// Send GC message
 function sendMessage() {
   const text = messageInput.value.trim();
   if (!text) return;
-
-  if (currentDM) {
-    socket.emit("privateMessage", { to: currentDM.id, text });
-  } else {
-    socket.emit("chatMessage", { user: username, text, room });
-  }
+  firestore.collection("rooms").doc(room).collection("messages").add({
+    user: username,
+    text,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  });
   messageInput.value = "";
 }
 sendBtn.onclick = sendMessage;
-messageInput.addEventListener("keypress", e => { if(e.key==="Enter") sendMessage(); });
+messageInput.addEventListener("keypress", e => { if (e.key==="Enter") sendMessage(); });
 
-// Receive messages
-socket.on("chatMessage", msg => {
-  const div = document.createElement("div");
-  div.classList.add("message");
+// Change username
+changeUsernameBtn.onclick = () => {
+  const newUsername = prompt("Enter new username:", username);
+  if (newUsername && newUsername !== username) username = newUsername;
+  currentUsernameEl.textContent = username;
+};
 
-  if(msg.user === "System") div.classList.add("system");
-  else if(msg.user === username) div.classList.add("self");
-  else div.classList.add("other");
+// Generate link
+generateLinkBtn.onclick = () => {
+  const url = window.location.origin + "?room=" + room;
+  navigator.clipboard.writeText(url);
+  alert("Room link copied: " + url);
+};
 
-  div.innerHTML = msg.user==="System"?msg.text:`<b>${msg.user}:</b> ${msg.text}`;
+// Join new room input
+joinRoomBtn.onclick = () => {
+  const newRoom = newRoomInput.value.trim();
+  if (!newRoom) return;
+  joinRoom(newRoom);
+  newRoomInput.value = "";
+};
 
-  if(msg.user.includes("(DM")) {
-    const other = msg.user.match(/DM from (.+)\)/)[1] || msg.user;
-    if(!dms[other]) dms[other]=[];
-    dms[other].push(div.outerHTML);
-    renderDM(other);
-  } else {
-    gcMessagesEl.appendChild(div);
-    gcMessagesEl.scrollTop = gcMessagesEl.scrollHeight;
-  }
-});
+// Users list with DM buttons (simulate live users here for demo)
+function renderUsers(users) {
+  userListEl.innerHTML = "";
+  users.forEach(u => {
+    if (u === username) return;
+    const li = document.createElement("li");
+    li.textContent = u;
 
-// Update user list
-socket.on("userList", users=>{
-  userListEl.innerHTML="";
-  users.forEach(u=>{
-    if(u.username===username) return;
-    const li=document.createElement("li");
-    li.textContent=u.username;
-
-    const dmBtn=document.createElement("button");
-    dmBtn.textContent="DM";
-    dmBtn.className="dm-btn";
-    dmBtn.onclick=e=>{
-      e.stopPropagation();
-      if(!dms[u.username]) dms[u.username]=[];
-      currentDM=u;
-      renderDM(u.username);
-    };
+    const dmBtn = document.createElement("button");
+    dmBtn.textContent = "DM";
+    dmBtn.className = "dm-btn";
+    dmBtn.onclick = () => openDM(u);
 
     li.appendChild(dmBtn);
     userListEl.appendChild(li);
   });
-});
-
-// Render DM panel
-function renderDM(user){
-  dmMessagesEl.innerHTML="";
-  dms[user].forEach(msgHTML=>{
-    dmMessagesEl.innerHTML+=msgHTML;
-  });
-  gcMessagesEl.classList.toggle("hidden", currentDM!=null);
-  dmMessagesEl.parentElement.classList.toggle("hidden", currentDM==null);
-  dmMessagesEl.scrollTop=dmMessagesEl.scrollHeight;
 }
 
-// Change username
-changeUsernameBtn.onclick = ()=>{
-  const newUsername = prompt("Enter new username:", username);
-  if(newUsername && newUsername!==username){
-    socket.emit("changeUsername", newUsername);
-    username=newUsername;
-    currentUsernameEl.textContent=username;
-  }
+// DM modal
+function openDM(user) {
+  currentDM = user;
+  dmHeader.textContent = "DM with " + user;
+  dmModal.classList.remove("hidden");
+  renderDM();
+}
+
+function renderDM() {
+  dmMessagesEl.innerHTML = "";
+  if (!dms[currentDM]) dms[currentDM] = [];
+  dms[currentDM].forEach(msg => {
+    const div = document.createElement("div");
+    div.innerHTML = msg;
+    dmMessagesEl.appendChild(div);
+  });
+  dmMessagesEl.scrollTop = dmMessagesEl.scrollHeight;
+}
+
+dmSendBtn.onclick = () => {
+  const text = dmMessageInput.value.trim();
+  if (!text) return;
+  const msgDiv = `<b>${username}:</b> ${text}`;
+  if (!dms[currentDM]) dms[currentDM] = [];
+  dms[currentDM].push(msgDiv);
+  renderDM();
+  dmMessageInput.value = "";
 };
 
-// Generate link
-generateLinkBtn.onclick=()=>{
-  const url=window.location.origin+"?room="+room;
-  navigator.clipboard.writeText(url);
-  alert("Room link copied: "+url);
+dmCloseBtn.onclick = () => {
+  dmModal.classList.add("hidden");
+  currentDM = null;
 };
 
-// Join new room
-joinRoomBtn.onclick=()=>{
-  const newRoom=newRoomInput.value.trim();
-  if(!newRoom) return;
-  room=newRoom;
-  socket.emit("joinRoom",{username, room});
-  newRoomInput.value="";
-  gcMessagesEl.innerHTML="";
-  currentDM=null;
-  dmMessagesEl.parentElement.classList.add("hidden");
-};
+// Initial setup
+renderGClist();
+joinRoom(room);
+renderUsers(["Alice", "Bob", "Charlie", username]);
