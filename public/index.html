@@ -10,13 +10,15 @@
 <div id="container">
   <div id="chatScreen">
     <div id="topBar">
-      <div id="usernameDisplay">User: <span id="currentUsername"></span> <button id="changeUsernameBtn">Change</button></div>
+      <div id="usernameDisplay">
+        User: <span id="currentUsername"></span>
+        <button id="changeUsernameBtn">Change</button>
+      </div>
       <div>
         <select id="themeSelect"></select>
         <button id="generateLinkBtn">Copy Room Link</button>
       </div>
     </div>
-
     <div id="chatContent">
       <div id="messages"></div>
       <div id="sidebar">
@@ -24,14 +26,12 @@
         <ul id="userList"></ul>
       </div>
     </div>
-
     <div id="inputArea">
       <input id="messageInput" placeholder="Type a message..." />
       <button id="sendBtn">Send</button>
     </div>
   </div>
 </div>
-
 <script src="/socket.io/socket.io.js"></script>
 <script type="module" src="script.js"></script>
 </body>
