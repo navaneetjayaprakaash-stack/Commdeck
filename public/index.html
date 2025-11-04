@@ -27,7 +27,6 @@
 
   <!-- Main Content -->
   <main id="chatContent">
-    <!-- Group Chat Messages -->
     <section id="messagesContainer">
       <div id="gcMessages" class="messages-panel"></div>
     </section>
@@ -36,9 +35,8 @@
     <aside id="sidebar">
       <h3>Group Chats</h3>
       <ul id="gcList"></ul>
-
-      <h3>Users</h3>
-      <ul id="userList"></ul>
+      <h3>Users / Direct Messages</h3>
+      <ul id="dmList"></ul>
     </aside>
   </main>
 
@@ -47,26 +45,24 @@
     <input id="messageInput" type="text" placeholder="Type a message..." autocomplete="off">
     <button id="sendBtn" class="styled-btn">Send</button>
   </footer>
+
 </div>
 
 <!-- DM Panel -->
-<div id="dmPanel" class="hidden" style="position:fixed;top:0;left:0;width:100%;height:100%;background:var(--background);display:flex;z-index:1000;">
-  <!-- DM List Sidebar -->
-  <div id="dmListSidebar" style="width:250px;background:var(--sidebar-bg);border-right:2px solid var(--separator);display:flex;flex-direction:column;">
-    <div style="padding:10px;font-weight:bold;color:white;">Direct Messages</div>
-    <ul id="dmList" style="flex:1;overflow-y:auto;"></ul>
+<div id="dmPanel" class="hidden">
+  <div id="dmSidebar">
+    <div class="dmHeader">Direct Messages</div>
+    <ul id="dmUserList"></ul>
   </div>
-
-  <!-- DM Messages Panel -->
-  <div style="flex:1;display:flex;flex-direction:column;">
-    <div id="dmHeader" style="padding:10px;border-bottom:1px solid var(--separator);color:white;font-weight:bold;">Select a chat</div>
-    <div id="dmMessages" class="messages-panel" style="flex:1;overflow-y:auto;padding:10px;"></div>
-    <div style="display:flex;padding:10px;border-top:1px solid var(--separator);">
-      <input id="dmMessageInput" type="text" placeholder="Type a message..." style="flex:1;border:none;border-radius:20px 0 0 20px;padding:10px;background:var(--input-bg);color:white;">
-      <button id="dmSendBtn" class="styled-btn" style="border-radius:0 20px 20px 0;">Send</button>
+  <div id="dmChatArea">
+    <div id="dmHeader"></div>
+    <div id="dmMessages" class="messages-panel"></div>
+    <div id="dmInputArea">
+      <input id="dmMessageInput" placeholder="Type a message...">
+      <button id="dmSendBtn">Send</button>
     </div>
   </div>
-  <button id="dmCloseBtn" class="styled-btn" style="position:absolute;top:10px;right:10px;">Close</button>
+  <button id="dmCloseBtn">Close</button>
 </div>
 
 <script type="module" src="script.js"></script>
