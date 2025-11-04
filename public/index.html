@@ -1,38 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Multi-Room Chat DM</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multi-Room Chat</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
 <div id="container">
-  <div id="chatScreen">
-    <div id="topBar">
-      <div id="usernameDisplay">
-        User: <span id="currentUsername"></span>
-        <button id="changeUsernameBtn">Change</button>
-      </div>
-      <div>
-        <select id="themeSelect"></select>
-        <button id="generateLinkBtn">Copy Room Link</button>
-      </div>
+
+  <!-- Top Bar -->
+  <header id="topBar">
+    <div class="user-controls">
+      <span>Username: <b id="currentUsername"></b></span>
+      <button id="changeUsernameBtn">Change Username</button>
     </div>
-    <div id="chatContent">
+    <div class="room-controls">
+      <label for="themeSelect">Theme:</label>
+      <select id="themeSelect"></select>
+      <button id="generateLinkBtn">Copy Room Link</button>
+    </div>
+  </header>
+
+  <!-- Chat Content Area -->
+  <main id="chatContent">
+    <!-- Messages Column -->
+    <section id="messagesContainer">
       <div id="messages"></div>
-      <div id="sidebar">
-        <h3>Users</h3>
-        <ul id="userList"></ul>
-      </div>
-    </div>
-    <div id="inputArea">
-      <input id="messageInput" placeholder="Type a message..." />
-      <button id="sendBtn">Send</button>
-    </div>
-  </div>
+    </section>
+
+    <!-- Sidebar / User List -->
+    <aside id="sidebar">
+      <h3>Users in Room</h3>
+      <ul id="userList"></ul>
+    </aside>
+  </main>
+
+  <!-- Input Area -->
+  <footer id="inputArea">
+    <input id="messageInput" type="text" placeholder="Type a message..." autocomplete="off">
+    <button id="sendBtn">Send</button>
+  </footer>
+
 </div>
+
+<!-- Socket.IO -->
 <script src="/socket.io/socket.io.js"></script>
+<!-- Main Chat JS -->
 <script type="module" src="script.js"></script>
+
 </body>
 </html>
