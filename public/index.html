@@ -14,20 +14,21 @@
   <header id="topBar">
     <div class="user-controls">
       <span>Username: <b id="currentUsername"></b></span>
-      <button id="changeUsernameBtn">Change Username</button>
+      <button id="changeUsernameBtn" class="styled-btn">Change Username</button>
     </div>
     <div class="room-controls">
       <label for="themeSelect">Theme:</label>
-      <select id="themeSelect"></select>
-      <button id="generateLinkBtn">Copy Room Link</button>
+      <select id="themeSelect" class="styled-select"></select>
+      <button id="generateLinkBtn" class="styled-btn">Generate Link</button>
     </div>
   </header>
 
-  <!-- Chat Content -->
+  <!-- Main Chat Area -->
   <main id="chatContent">
-    <!-- Messages -->
+    <!-- Messages Panel -->
     <section id="messagesContainer">
-      <div id="messages"></div>
+      <div id="gcMessages" class="messages-panel"></div>
+      <div id="dmMessages" class="messages-panel hidden"></div>
     </section>
 
     <!-- Sidebar / User List -->
@@ -40,7 +41,7 @@
   <!-- Input Area fixed at bottom -->
   <footer id="inputArea">
     <input id="messageInput" type="text" placeholder="Type a message..." autocomplete="off">
-    <button id="sendBtn">Send</button>
+    <button id="sendBtn" class="styled-btn">Send</button>
   </footer>
 
 </div>
