@@ -27,32 +27,32 @@
 
   <!-- Main Chat + Sidebar -->
   <main id="chatContent">
-    <!-- Rooms and DMs Panel -->
+    <!-- GC & DM List Sidebar -->
     <aside id="sidebar">
       <h3>Group Chats</h3>
       <ul id="gcList"></ul>
-      <h3>Users</h3>
+      <h3>Direct Messages</h3>
       <ul id="dmUserList"></ul>
     </aside>
 
     <!-- Messages Panel -->
     <section id="messagesContainer">
       <div id="gcMessages" class="messages-panel"></div>
+
+      <!-- DM Panel (hidden by default) -->
+      <div id="dmPanel" class="hidden">
+        <div id="dmHeader" class="dm-header">DM</div>
+        <div id="dmMessages" class="messages-panel"></div>
+        <div id="dmInputArea">
+          <input id="dmMessageInput" type="text" placeholder="Type a message..." autocomplete="off">
+          <button id="dmSendBtn" class="styled-btn">Send</button>
+          <button id="dmCloseBtn" class="styled-btn">Close</button>
+        </div>
+      </div>
     </section>
   </main>
 
-  <!-- DM Panel (hidden by default) -->
-  <div id="dmPanel" class="hidden">
-    <div id="dmHeader">DM</div>
-    <div id="dmMessages" class="messages-panel"></div>
-    <div id="dmInputArea">
-      <input id="dmMessageInput" placeholder="Type a message...">
-      <button id="dmSendBtn" class="styled-btn">Send</button>
-      <button id="dmCloseBtn" class="styled-btn">Close</button>
-    </div>
-  </div>
-
-  <!-- Input Area -->
+  <!-- Input Area for GC -->
   <footer id="inputArea">
     <input id="messageInput" type="text" placeholder="Type a message..." autocomplete="off">
     <button id="sendBtn" class="styled-btn">Send</button>
@@ -60,6 +60,8 @@
 
 </div>
 
+<script type="module" src="firebase.js"></script>
 <script type="module" src="script.js"></script>
+
 </body>
 </html>
