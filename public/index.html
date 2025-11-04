@@ -30,17 +30,15 @@
     <!-- Messages Panel -->
     <section id="messagesContainer">
       <div id="gcMessages" class="messages-panel"></div>
-      <div id="dmMessagesContainer">
-        <h4>Direct Messages</h4>
-        <div id="dmList" class="dm-list"></div>
-        <div id="dmMessages" class="messages-panel"></div>
-      </div>
     </section>
 
-    <!-- Sidebar / Users -->
+    <!-- Sidebar / Users + GC List -->
     <aside id="sidebar">
       <h3>Users in Room</h3>
       <ul id="userList"></ul>
+
+      <h3>Group Chats</h3>
+      <ul id="gcList"></ul>
     </aside>
   </main>
 
@@ -52,6 +50,21 @@
 
 </div>
 
+<!-- DM Modal -->
+<div id="dmModal" class="modal hidden">
+  <div class="modal-content">
+    <h4 id="dmHeader">Direct Message</h4>
+    <div id="dmMessages" class="messages-panel"></div>
+    <div class="dm-input-area">
+      <input id="dmMessageInput" type="text" placeholder="Type a DM..." autocomplete="off">
+      <button id="dmSendBtn" class="styled-btn">Send</button>
+      <button id="dmCloseBtn" class="styled-btn">Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore-compat.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script type="module" src="script.js"></script>
 
