@@ -27,12 +27,10 @@
 
   <!-- Main Chat + Sidebar -->
   <main id="chatContent">
-    <!-- Messages Panel -->
     <section id="messagesContainer">
       <div id="gcMessages" class="messages-panel"></div>
     </section>
 
-    <!-- Sidebar / Users + GC List -->
     <aside id="sidebar">
       <h3>Users in Room</h3>
       <ul id="userList"></ul>
@@ -42,7 +40,7 @@
     </aside>
   </main>
 
-  <!-- Input Area fixed at bottom -->
+  <!-- Input Area -->
   <footer id="inputArea">
     <input id="messageInput" type="text" placeholder="Type a message..." autocomplete="off">
     <button id="sendBtn" class="styled-btn">Send</button>
@@ -65,7 +63,6 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore-compat.js"></script>
-<script src="/socket.io/socket.io.js"></script>
 <script type="module" src="script.js"></script>
 
 </body>
