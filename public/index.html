@@ -49,21 +49,27 @@
   </footer>
 </div>
 
-<!-- DM Modal -->
-<div id="dmModal" class="hidden" style="position:fixed;top:10%;left:50%;transform:translateX(-50%);width:400px;background:var(--sidebar-bg);border:2px solid var(--separator);border-radius:10px;display:flex;flex-direction:column;z-index:1000;">
-  <div style="display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid var(--separator);">
-    <span id="dmHeader">DM</span>
-    <button id="dmCloseBtn" class="styled-btn">Close</button>
+<!-- DM Panel -->
+<div id="dmPanel" class="hidden" style="position:fixed;top:0;left:0;width:100%;height:100%;background:var(--background);display:flex;z-index:1000;">
+  <!-- DM List Sidebar -->
+  <div id="dmListSidebar" style="width:250px;background:var(--sidebar-bg);border-right:2px solid var(--separator);display:flex;flex-direction:column;">
+    <div style="padding:10px;font-weight:bold;color:white;">Direct Messages</div>
+    <ul id="dmList" style="flex:1;overflow-y:auto;"></ul>
   </div>
-  <div id="dmMessages" class="messages-panel" style="flex:1;padding:10px;overflow-y:auto;"></div>
-  <div style="display:flex;padding:10px;border-top:1px solid var(--separator);">
-    <input id="dmMessageInput" type="text" placeholder="Type a DM..." style="flex:1;border:none;border-radius:20px 0 0 20px;padding:10px;background:var(--input-bg);color:var(--text);">
-    <button id="dmSendBtn" class="styled-btn" style="border-radius:0 20px 20px 0;">Send</button>
+
+  <!-- DM Messages Panel -->
+  <div style="flex:1;display:flex;flex-direction:column;">
+    <div id="dmHeader" style="padding:10px;border-bottom:1px solid var(--separator);color:white;font-weight:bold;">Select a chat</div>
+    <div id="dmMessages" class="messages-panel" style="flex:1;overflow-y:auto;padding:10px;"></div>
+    <div style="display:flex;padding:10px;border-top:1px solid var(--separator);">
+      <input id="dmMessageInput" type="text" placeholder="Type a message..." style="flex:1;border:none;border-radius:20px 0 0 20px;padding:10px;background:var(--input-bg);color:white;">
+      <button id="dmSendBtn" class="styled-btn" style="border-radius:0 20px 20px 0;">Send</button>
+    </div>
   </div>
+  <button id="dmCloseBtn" class="styled-btn" style="position:absolute;top:10px;right:10px;">Close</button>
 </div>
 
 <script type="module" src="script.js"></script>
 <script src="/socket.io/socket.io.js"></script>
-
 </body>
 </html>
