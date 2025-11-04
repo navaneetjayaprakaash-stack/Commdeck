@@ -1,20 +1,7 @@
-import { initializeApp } from "firebase/app";
-import { getFirestore, collection, addDoc, doc, setDoc, onSnapshot, query, orderBy, getDocs } from "firebase/firestore";
+import { db } from './firebase.js';
+import { collection, addDoc, doc, setDoc, onSnapshot, query, orderBy, getDocs, getDoc } from "firebase/firestore";
 
-// --- Firebase Config ---
-const firebaseConfig = {
-  apiKey: "AIzaSyDw-qqvRKmbu9R9b6sk70s4vbxJt-H0NGk",
-  authDomain: "my-chat-room-1d84f.firebaseapp.com",
-  projectId: "my-chat-room-1d84f",
-  storageBucket: "my-chat-room-1d84f.firebasestorage.app",
-  messagingSenderId: "747796328971",
-  appId: "1:747796328971:web:beb5c15265855e169e8d0e"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// --- DOM Elements ---
+// DOM
 const currentUsernameEl = document.getElementById("currentUsername");
 const messageInput = document.getElementById("messageInput");
 const sendBtn = document.getElementById("sendBtn");
@@ -32,213 +19,157 @@ const newRoomInput = document.getElementById("newRoomInput");
 const joinRoomBtn = document.getElementById("joinRoomBtn");
 const gcList = document.getElementById("gcList");
 
-// --- State ---
-let username = "User" + Math.floor(Math.random() * 1000);
-let room = new URLSearchParams(window.location.search).get("room") || "general";
+// State
+let username = "User"+Math.floor(Math.random()*1000);
+let room = "general";
 let currentDM = null;
 
-// Display username
-currentUsernameEl.textContent = username;
-
-// --- Register current user ---
-async function registerUser() {
-  const userRef = doc(db, "users", username);
-  await setDoc(userRef, { lastSeen: new Date() }, { merge: true });
+// --- Load persistent user data ---
+async function loadUserData() {
+  const userDoc = doc(db,"users",username);
+  const userSnap = await getDoc(userDoc);
+  if(userSnap.exists()){
+    const data = userSnap.data();
+    if(data.lastUsername) username = data.lastUsername;
+    if(data.lastRoom) room = data.lastRoom;
+  }
+  currentUsernameEl.textContent = username;
+  await setDoc(doc(db,"users",username), { lastUsername:username, lastRoom:room, lastSeen:new Date() }, {merge:true});
 }
-registerUser();
+await loadUserData();
 
-// Periodic lastSeen update
-setInterval(async () => {
-  const userRef = doc(db, "users", username);
-  await setDoc(userRef, { lastSeen: new Date() }, { merge: true });
-}, 60000);
+// Periodically update lastSeen & lastRoom
+setInterval(async()=>{ await setDoc(doc(db,"users",username), { lastSeen:new Date(), lastRoom:room }, {merge:true}); },60000);
 
 // --- Themes ---
 const themes = [
-  { id: "sunset-glow", name: "Sunset Glow" },
-  { id: "purple-haze", name: "Purple Haze" },
-  { id: "deep-ocean", name: "Deep Ocean" },
-  { id: "royal-blue", name: "Royal Blue" },
-  { id: "sky-breeze", name: "Sky Breeze" },
-  { id: "hot-pink", name: "Hot Pink" },
-  { id: "molten-orange", name: "Molten Orange" },
-  { id: "golden-hour", name: "Golden Hour" },
-  { id: "rose-red", name: "Rose Red" },
-  { id: "violet-dream", name: "Violet Dream" },
-  { id: "indigo-night", name: "Indigo Night" },
-  { id: "mystic-purple", name: "Mystic Purple" },
-  { id: "fuchsia-glow", name: "Fuchsia Glow" },
-  { id: "electric-blue", name: "Electric Blue" },
-  { id: "aqua-mist", name: "Aqua Mist" },
-  { id: "magenta-pulse", name: "Magenta Pulse" },
-  { id: "blazing-orange", name: "Blazing Orange" },
-  { id: "sunlit-gold", name: "Sunlit Gold" },
-  { id: "royal-violet", name: "Royal Violet" },
-  { id: "night-indigo", name: "Night Indigo" }
+  {id:"sunset-glow",name:"Sunset Glow"}, {id:"purple-haze",name:"Purple Haze"}, {id:"deep-ocean",name:"Deep Ocean"},
+  {id:"royal-blue",name:"Royal Blue"}, {id:"sky-breeze",name:"Sky Breeze"}, {id:"hot-pink",name:"Hot Pink"},
+  {id:"molten-orange",name:"Molten Orange"}, {id:"golden-hour",name:"Golden Hour"}, {id:"rose-red",name:"Rose Red"},
+  {id:"violet-dream",name:"Violet Dream"}, {id:"indigo-night",name:"Indigo Night"}, {id:"mystic-purple",name:"Mystic Purple"},
+  {id:"fuchsia-glow",name:"Fuchsia Glow"}, {id:"electric-blue",name:"Electric Blue"}, {id:"aqua-mist",name:"Aqua Mist"},
+  {id:"magenta-pulse",name:"Magenta Pulse"}, {id:"blazing-orange",name:"Blazing Orange"}, {id:"sunlit-gold",name:"Sunlit Gold"},
+  {id:"royal-violet",name:"Royal Violet"}, {id:"night-indigo",name:"Night Indigo"}
 ];
-
-themes.forEach(t => {
-  const opt = document.createElement("option");
-  opt.value = t.id;
-  opt.textContent = t.name;
-  themeSelect.appendChild(opt);
-});
-
-// Load saved theme
+themes.forEach(t=>{ const opt=document.createElement("option"); opt.value=t.id; opt.textContent=t.name; themeSelect.appendChild(opt); });
 const savedTheme = localStorage.getItem("selectedTheme");
-if (savedTheme) {
-  document.body.dataset.theme = savedTheme;
-  themeSelect.value = savedTheme;
-}
+if(savedTheme){ document.body.dataset.theme = savedTheme; themeSelect.value = savedTheme; }
+themeSelect.onchange = ()=>{ document.body.dataset.theme=themeSelect.value; localStorage.setItem("selectedTheme",themeSelect.value); };
 
-// Theme change
-themeSelect.onchange = () => {
-  document.body.dataset.theme = themeSelect.value;
-  localStorage.setItem("selectedTheme", themeSelect.value);
-};
-
-// --- Group Chats (Rooms) ---
-async function loadRooms() {
-  const roomsSnapshot = await getDocs(collection(db, "rooms"));
-  const roomNames = roomsSnapshot.docs.map(doc => doc.id);
-  gcList.innerHTML = "";
-  roomNames.forEach(r => {
-    const li = document.createElement("li");
-    li.textContent = r;
-    li.onclick = () => joinRoom(r);
+// --- Load Rooms ---
+async function loadRooms(){
+  const snapshot = await getDocs(collection(db,"rooms"));
+  gcList.innerHTML="";
+  snapshot.forEach(doc=>{
+    const li=document.createElement("li");
+    li.textContent=doc.id;
+    li.onclick=()=>joinRoom(doc.id);
     gcList.appendChild(li);
   });
 }
 loadRooms();
 
-// Join room
-async function joinRoom(roomName) {
+// --- Join Room ---
+async function joinRoom(roomName){
   room = roomName;
-  gcMessagesEl.innerHTML = "";
-  window.history.replaceState(null, null, "?room=" + room);
-  listenToRoomMessages();
-}
-joinRoom(room);
-
-// Listen GC messages
-function listenToRoomMessages() {
-  const q = query(collection(db, "rooms", room, "messages"), orderBy("timestamp"));
-  onSnapshot(q, snapshot => {
-    gcMessagesEl.innerHTML = "";
-    snapshot.forEach(doc => {
-      const msg = doc.data();
-      const div = document.createElement("div");
+  gcMessagesEl.innerHTML="";
+  window.history.replaceState(null,null,"?room="+room);
+  await setDoc(doc(db,"users",username), { lastRoom:room }, {merge:true});
+  const q = query(collection(db,"rooms",room,"messages"), orderBy("timestamp"));
+  onSnapshot(q,snapshot=>{
+    gcMessagesEl.innerHTML="";
+    snapshot.forEach(doc=>{
+      const msg=doc.data();
+      const div=document.createElement("div");
       div.classList.add("message");
-      if (msg.user === username) div.classList.add("self");
-      else if (msg.user === "System") div.classList.add("system");
+      if(msg.user===username) div.classList.add("self");
+      else if(msg.user==="System") div.classList.add("system");
       else div.classList.add("other");
-      div.innerHTML = msg.user === "System" ? msg.text : `<b>${msg.user}:</b> ${msg.text}`;
+      div.innerHTML=msg.user==="System"?msg.text:`<b>${msg.user}:</b> ${msg.text}`;
       gcMessagesEl.appendChild(div);
-      gcMessagesEl.scrollTop = gcMessagesEl.scrollHeight;
+      gcMessagesEl.scrollTop=gcMessagesEl.scrollHeight;
     });
   });
 }
+joinRoom(room);
 
-// Send GC message
-sendBtn.onclick = async () => {
-  const text = messageInput.value.trim();
-  if (!text) return;
-  await addDoc(collection(db, "rooms", room, "messages"), {
-    user: username,
-    text,
-    timestamp: new Date()
-  });
-  messageInput.value = "";
+// --- Send GC ---
+sendBtn.onclick=async()=>{
+  const text=messageInput.value.trim(); if(!text) return;
+  await addDoc(collection(db,"rooms",room,"messages"),{user:username,text,timestamp:new Date()});
+  messageInput.value="";
 };
-messageInput.addEventListener("keypress", e => { if (e.key === "Enter") sendBtn.onclick(); });
+messageInput.addEventListener("keypress",e=>{if(e.key==="Enter") sendBtn.onclick();});
 
-// Create new room
-joinRoomBtn.onclick = async () => {
-  const newRoom = newRoomInput.value.trim();
-  if (!newRoom) return;
-  await setDoc(doc(db, "rooms", newRoom), { created: new Date() });
-  newRoomInput.value = "";
+// --- Create GC ---
+joinRoomBtn.onclick=async()=>{
+  const newRoom=newRoomInput.value.trim(); if(!newRoom) return;
+  await setDoc(doc(db,"rooms",newRoom),{created:new Date()});
+  newRoomInput.value="";
   loadRooms();
   joinRoom(newRoom);
 };
 
-// Generate room link
-generateLinkBtn.onclick = () => {
-  const url = window.location.origin + "?room=" + room;
-  navigator.clipboard.writeText(url);
-  alert("Room link copied: " + url);
-};
+// --- Generate Link ---
+generateLinkBtn.onclick=()=>{ navigator.clipboard.writeText(window.location.origin+"?room="+room); alert("Room link copied!"); };
 
-// Change username
-changeUsernameBtn.onclick = () => {
-  const newName = prompt("Enter new username:", username);
-  if (newName && newName !== username) {
-    username = newName;
-    currentUsernameEl.textContent = username;
-    registerUser(); // update Firestore
+// --- Change Username ---
+changeUsernameBtn.onclick=async()=>{
+  const newName=prompt("Enter new username:",username);
+  if(newName && newName!==username){
+    const oldName=username;
+    username=newName;
+    currentUsernameEl.textContent=username;
+    const oldDoc=await getDoc(doc(db,"users",oldName));
+    const lastRoom=oldDoc.exists()?oldDoc.data().lastRoom:"general";
+    await setDoc(doc(db,"users",username), { lastUsername:username, lastRoom, lastSeen:new Date() }, {merge:true});
   }
 };
 
-// --- DM System ---
-async function loadUsers() {
-  const usersSnapshot = await getDocs(collection(db, "users"));
-  dmUserList.innerHTML = "";
-  usersSnapshot.forEach(doc => {
-    const u = doc.id;
-    if (u === username) return;
-    const li = document.createElement("li");
-    li.textContent = u;
-    li.onclick = () => openDM(u);
+// --- Load Users for DM ---
+async function loadUsers(){
+  const snapshot = await getDocs(collection(db,"users"));
+  dmUserList.innerHTML="";
+  snapshot.forEach(doc=>{
+    const u=doc.id;
+    if(u===username) return;
+    const li=document.createElement("li");
+    li.textContent=u;
+    li.onclick=()=>openDM(u);
     dmUserList.appendChild(li);
   });
 }
 loadUsers();
 
-// Refresh DM user list every 5s
-setInterval(loadUsers, 5000);
-
-function openDM(user) {
-  currentDM = user;
+// --- DM ---
+function openDM(user){
+  currentDM=user;
   dmPanel.classList.remove("hidden");
-  document.getElementById("dmHeader").textContent = "DM with " + user;
-  listenDMMessages(user);
-}
-
-function listenDMMessages(user) {
-  const chatId = [username, user].sort().join("_");
-  const q = query(collection(db, "dms", chatId, "messages"), orderBy("timestamp"));
-  onSnapshot(q, snapshot => {
-    dmMessagesEl.innerHTML = "";
-    snapshot.forEach(doc => {
-      const msg = doc.data();
-      const div = document.createElement("div");
+  document.getElementById("dmHeader").textContent="DM with "+user;
+  const chatId=[username,user].sort().join("_");
+  const q=query(collection(db,"dms",chatId,"messages"), orderBy("timestamp"));
+  onSnapshot(q,snapshot=>{
+    dmMessagesEl.innerHTML="";
+    snapshot.forEach(doc=>{
+      const msg=doc.data();
+      const div=document.createElement("div");
       div.classList.add("message");
-      if (msg.user === username) div.classList.add("self");
+      if(msg.user===username) div.classList.add("self");
       else div.classList.add("other");
-      div.innerHTML = `<b>${msg.user}:</b> ${msg.text}`;
+      div.innerHTML=`<b>${msg.user}:</b> ${msg.text}`;
       dmMessagesEl.appendChild(div);
-      dmMessagesEl.scrollTop = dmMessagesEl.scrollHeight;
+      dmMessagesEl.scrollTop=dmMessagesEl.scrollHeight;
     });
   });
 }
 
-// Send DM
-dmSendBtn.onclick = async () => {
-  if (!currentDM) return;
-  const text = dmMessageInput.value.trim();
-  if (!text) return;
-  const chatId = [username, currentDM].sort().join("_");
-  await addDoc(collection(db, "dms", chatId, "messages"), {
-    user: username,
-    text,
-    timestamp: new Date()
-  });
-  dmMessageInput.value = "";
+dmSendBtn.onclick=async()=>{
+  if(!currentDM) return;
+  const text=dmMessageInput.value.trim(); if(!text) return;
+  const chatId=[username,currentDM].sort().join("_");
+  await addDoc(collection(db,"dms",chatId,"messages"),{user:username,text,timestamp:new Date()});
+  dmMessageInput.value="";
 };
-dmMessageInput.addEventListener("keypress", e => { if (e.key === "Enter") dmSendBtn.onclick(); });
+dmMessageInput.addEventListener("keypress",e=>{if(e.key==="Enter") dmSendBtn.onclick();});
 
-// Close DM panel
-dmCloseBtn.onclick = () => {
-  dmPanel.classList.add("hidden");
-  currentDM = null;
-};
+dmCloseBtn.onclick=()=>{ dmPanel.classList.add("hidden"); currentDM=null; };
