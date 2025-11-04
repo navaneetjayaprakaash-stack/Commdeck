@@ -6,7 +6,7 @@
 <title>Multi-Room Chat + DMs</title>
 <link rel="stylesheet" href="style.css">
 </head>
-<body data-theme="sunset-glow">
+<body>
 
 <div id="container">
 
@@ -25,22 +25,25 @@
     </div>
   </header>
 
-  <!-- Main Content -->
+  <!-- Main Chat + Sidebar -->
   <main id="chatContent">
-    <section id="messagesContainer">
-      <div id="gcMessages" class="messages-panel"></div>
-    </section>
 
     <!-- Sidebar -->
     <aside id="sidebar">
       <h3>Group Chats</h3>
-      <ul id="gcList"></ul>
-      <h3>Users / Direct Messages</h3>
-      <ul id="dmList"></ul>
+      <ul id="gcList" class="gc-list"></ul>
+      <h3>Direct Messages</h3>
+      <ul id="dmUserList" class="dm-list"></ul>
     </aside>
+
+    <!-- Messages Panel -->
+    <section id="messagesContainer">
+      <div id="gcMessages" class="messages-panel"></div>
+    </section>
+
   </main>
 
-  <!-- Input Area -->
+  <!-- Input Area fixed at bottom -->
   <footer id="inputArea">
     <input id="messageInput" type="text" placeholder="Type a message..." autocomplete="off">
     <button id="sendBtn" class="styled-btn">Send</button>
@@ -50,22 +53,17 @@
 
 <!-- DM Panel -->
 <div id="dmPanel" class="hidden">
-  <div id="dmSidebar">
-    <div class="dmHeader">Direct Messages</div>
-    <ul id="dmUserList"></ul>
+  <div id="dmHeaderContainer">
+    <span id="dmHeader">DM</span>
+    <button id="dmCloseBtn" class="styled-btn">Close</button>
   </div>
-  <div id="dmChatArea">
-    <div id="dmHeader"></div>
-    <div id="dmMessages" class="messages-panel"></div>
-    <div id="dmInputArea">
-      <input id="dmMessageInput" placeholder="Type a message...">
-      <button id="dmSendBtn">Send</button>
-    </div>
+  <div id="dmMessages" class="messages-panel"></div>
+  <div id="dmInputArea">
+    <input id="dmMessageInput" type="text" placeholder="Type a message..." autocomplete="off">
+    <button id="dmSendBtn" class="styled-btn">Send</button>
   </div>
-  <button id="dmCloseBtn">Close</button>
 </div>
 
 <script type="module" src="script.js"></script>
-<script src="/socket.io/socket.io.js"></script>
 </body>
 </html>
