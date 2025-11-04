@@ -10,7 +10,7 @@
   --bubble-other: #40444b;
 }
 
-/* --- Body --- */
+/* Body */
 body, html {
   margin: 0;
   padding: 0;
@@ -20,14 +20,9 @@ body, html {
   color: var(--text);
 }
 
-/* --- Container --- */
-#container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-}
+#container { display: flex; flex-direction: column; height: 100vh; }
 
-/* --- Top Bar --- */
+/* Top Bar */
 #topBar {
   display: flex;
   justify-content: space-between;
@@ -37,6 +32,7 @@ body, html {
   border-bottom: 2px solid var(--separator);
 }
 
+/* Buttons */
 .styled-btn {
   background: var(--primary);
   color: white;
@@ -47,10 +43,7 @@ body, html {
   margin-left: 5px;
   transition: opacity 0.2s;
 }
-
-.styled-btn:hover {
-  opacity: 0.85;
-}
+.styled-btn:hover { opacity: 0.85; }
 
 .styled-select, .styled-input {
   background: var(--input-bg);
@@ -61,196 +54,37 @@ body, html {
   margin-left: 5px;
 }
 
-/* --- Main Chat Content --- */
-#chatContent {
-  flex: 1;
-  display: flex;
-  overflow: hidden;
-}
+/* Main */
+#chatContent { display: flex; flex: 1; overflow: hidden; }
+#messagesContainer { flex: 3; display: flex; flex-direction: column; overflow-y: auto; padding: 10px; background: var(--background); }
+.messages-panel { flex: 1; overflow-y: auto; padding-right: 5px; display: flex; flex-direction: column; gap: 6px; }
 
-/* --- Sidebar --- */
-#sidebar {
-  flex: 1;
-  background: var(--sidebar-bg);
-  border-right: 3px solid var(--separator);
-  padding: 10px;
-  overflow-y: auto;
-}
+/* Sidebar */
+#sidebar { flex: 1; background: var(--sidebar-bg); border-left: 3px solid var(--separator); padding: 10px; overflow-y: auto; }
+#sidebar h3 { margin-top: 0; }
+#sidebar ul { list-style: none; padding: 0; }
+#sidebar li { margin: 5px 0; padding: 5px 8px; border-radius: 5px; cursor: pointer; transition: background 0.2s; }
+#sidebar li:hover { background: var(--primary); color: white; }
 
-#sidebar h3 {
-  margin-top: 0;
-  margin-bottom: 5px;
-}
+/* Input area */
+#inputArea, #dmInputArea { display: flex; padding: 10px; border-top: 2px solid var(--separator); background: var(--sidebar-bg); }
+#inputArea input, #dmInputArea input { flex: 1; padding: 10px; border-radius: 20px 0 0 20px; border: none; background: var(--input-bg); color: var(--text); }
+#inputArea button, #dmInputArea button { padding: 10px 20px; border: none; background: var(--primary); color: white; border-radius: 0 20px 20px 0; cursor: pointer; }
+#inputArea button:hover, #dmInputArea button:hover { opacity: 0.85; }
 
-#sidebar ul {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 10px 0;
-}
+/* Message bubbles */
+.message { max-width: 70%; padding: 8px 12px; border-radius: 12px; word-wrap: break-word; }
+.message.system { background: var(--system-text); font-style: italic; align-self: center; color: white; }
+.message.self { background: var(--bubble-self); align-self: flex-end; color: white; }
+.message.other { background: var(--bubble-other); align-self: flex-start; color: var(--text); }
 
-#sidebar li {
-  margin: 5px 0;
-  padding: 5px 8px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
+/* DM panel */
+#dmPanel { position: absolute; right: 20px; top: 80px; width: 350px; height: 500px; background: var(--sidebar-bg); border: 2px solid var(--separator); display: flex; flex-direction: column; }
+#dmPanel.hidden { display: none; }
+#dmHeader { padding: 10px; border-bottom: 2px solid var(--separator); font-weight: bold; }
 
-#sidebar li:hover {
-  background: var(--primary);
-}
-
-/* --- Messages Panel --- */
-#messagesContainer {
-  flex: 3;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  padding: 10px;
-  background: var(--background);
-}
-
-.messages-panel {
-  flex: 1;
-  overflow-y: auto;
-  padding-right: 5px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-/* --- Message Bubbles --- */
-.message {
-  max-width: 70%;
-  padding: 8px 12px;
-  border-radius: 12px;
-  word-wrap: break-word;
-}
-
-.message.system {
-  background: var(--system-text);
-  font-style: italic;
-  align-self: center;
-  color: white;
-}
-
-.message.self {
-  background: var(--bubble-self);
-  align-self: flex-end;
-  color: white;
-}
-
-.message.other {
-  background: var(--bubble-other);
-  align-self: flex-start;
-  color: var(--text);
-}
-
-/* --- Input Area --- */
-#inputArea {
-  display: flex;
-  padding: 10px;
-  border-top: 2px solid var(--separator);
-  background: var(--sidebar-bg);
-}
-
-#inputArea input {
-  flex: 1;
-  padding: 10px;
-  border-radius: 20px 0 0 20px;
-  border: none;
-  background: var(--input-bg);
-  color: var(--text);
-}
-
-#inputArea button {
-  padding: 10px 20px;
-  border: none;
-  background: var(--primary);
-  color: white;
-  border-radius: 0 20px 20px 0;
-  cursor: pointer;
-}
-
-/* --- DM Panel --- */
-#dmPanel {
-  position: fixed;
-  right: 20px;
-  bottom: 20px;
-  width: 300px;
-  max-height: 500px;
-  background: var(--sidebar-bg);
-  border: 2px solid var(--separator);
-  border-radius: 10px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  z-index: 100;
-}
-
-#dmPanel.hidden {
-  display: none;
-}
-
-#dmHeaderContainer {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px;
-  background: var(--primary);
-  color: white;
-}
-
-#dmInputArea {
-  display: flex;
-  border-top: 2px solid var(--separator);
-}
-
-#dmInputArea input {
-  flex: 1;
-  padding: 8px;
-  border: none;
-  border-radius: 0;
-  background: var(--input-bg);
-  color: white;
-}
-
-#dmInputArea button {
-  padding: 8px;
-  border: none;
-  background: var(--primary);
-  color: white;
-  cursor: pointer;
-}
-
-/* --- Scrollbars --- */
-#sidebar, .messages-panel, #gcMessages, #dmMessages, #dmUserList, #gcList {
-  scrollbar-width: thin;
-  scrollbar-color: var(--primary) var(--sidebar-bg);
-}
-
-#sidebar::-webkit-scrollbar, .messages-panel::-webkit-scrollbar {
-  width: 8px;
-}
-
-#sidebar::-webkit-scrollbar-thumb, .messages-panel::-webkit-scrollbar-thumb {
-  background-color: var(--primary);
-  border-radius: 4px;
-}
-
-#sidebar::-webkit-scrollbar-track, .messages-panel::-webkit-scrollbar-track {
-  background: var(--sidebar-bg);
-}
-
-/* --- Responsive --- */
+/* Responsive */
 @media (max-width: 768px) {
-  #chatContent {
-    flex-direction: column;
-  }
-
-  #sidebar {
-    flex: none;
-    height: 150px;
-    border-right: none;
-    border-bottom: 2px solid var(--separator);
-  }
+  #chatContent { flex-direction: column; }
+  #sidebar { flex: none; height: 150px; border-left: none; border-top: 2px solid var(--separator); }
 }
