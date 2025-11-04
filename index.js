@@ -56,6 +56,15 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("changeUsername", (newUsername) => {
+    if (users[socket.id]) {
+      const { room, username: oldUsername } = users[socket.id];
+      users[socket.id].username = newUsername;
+      io.to(room).emit("chatMessage", { user: "System", text: `${oldUsername} changed username to ${newUsername}` });
+      io.to(room).emit("userList", getUsersInRoom(room));
+    }
+  });
+
   socket.on("disconnect", () => {
     if (users[socket.id]) {
       const { username, room } = users[socket.id];
