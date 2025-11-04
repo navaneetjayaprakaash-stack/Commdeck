@@ -2,8 +2,6 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
-
-// Firebase
 const { db, collection, addDoc, query, orderBy, onSnapshot } = require("./firebase.js");
 
 const app = express();
@@ -15,8 +13,6 @@ app.use(express.static(path.join(__dirname, "public")));
 const users = {};
 
 io.on("connection", (socket) => {
-  console.log("A user connected");
-
   socket.on("joinRoom", ({ username, room }) => {
     users[socket.id] = { username, room };
     socket.join(room);
@@ -29,7 +25,7 @@ io.on("connection", (socket) => {
       socket.emit("loadMessages", msgs);
     });
 
-    // Welcome + notify
+    // Notify join
     socket.emit("chatMessage", { user: "System", text: `Welcome to ${room}, ${username}! 🎉` });
     socket.to(room).emit("chatMessage", { user: "System", text: `${username} joined the room` });
     io.to(room).emit("userList", getUsersInRoom(room));
@@ -43,9 +39,7 @@ io.on("connection", (socket) => {
         text: msg.text,
         timestamp: new Date()
       });
-    } catch (err) {
-      console.error("Error saving message:", err);
-    }
+    } catch (err) { console.error(err); }
   });
 
   socket.on("privateMessage", ({ to, text }) => {
