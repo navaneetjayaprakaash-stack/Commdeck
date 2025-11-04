@@ -6,6 +6,8 @@
   --input-bg: #40444b;
   --system-text: #72767d;
   --separator: #36393f;
+  --bubble-self: #7289da;
+  --bubble-other: #40444b;
 }
 
 body, html {
@@ -47,7 +49,7 @@ body, html {
   opacity: 0.85;
 }
 
-.styled-select {
+.styled-select, .styled-input {
   background: var(--input-bg);
   color: var(--text);
   border: none;
@@ -75,10 +77,9 @@ body, html {
   flex: 1;
   overflow-y: auto;
   padding-right: 5px;
-}
-
-.hidden {
-  display: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 #sidebar {
@@ -104,11 +105,26 @@ body, html {
   border-radius: 5px;
   cursor: pointer;
   transition: background 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 #sidebar li:hover {
   background: var(--primary);
   color: white;
+}
+
+/* DM bubble inside users list */
+.dm-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 2px 6px;
+  cursor: pointer;
+  margin-left: 5px;
+  font-size: 0.8em;
 }
 
 #inputArea {
@@ -140,18 +156,30 @@ body, html {
   opacity: 0.85;
 }
 
+/* Message bubbles */
+.message {
+  max-width: 70%;
+  padding: 8px 12px;
+  border-radius: 12px;
+  word-wrap: break-word;
+}
+
 .message.system {
-  color: var(--system-text);
+  background: var(--system-text);
   font-style: italic;
+  align-self: center;
+  color: white;
 }
 
 .message.self {
-  text-align: right;
-  color: #b9bbbe;
+  background: var(--bubble-self);
+  align-self: flex-end;
+  color: white;
 }
 
 .message.other {
-  text-align: left;
+  background: var(--bubble-other);
+  align-self: flex-start;
   color: var(--text);
 }
 
