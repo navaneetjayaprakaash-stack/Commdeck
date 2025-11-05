@@ -1,67 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Multi-Room Chat + DMs</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Chat Room</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<div id="container">
-
-  <!-- Top Bar -->
-  <header id="topBar">
-    <div class="user-controls">
-      <span>Username: <b id="currentUsername"></b></span>
-      <button id="changeUsernameBtn" class="styled-btn">Change Username</button>
-    </div>
-    <div class="room-controls">
-      <label for="themeSelect">Theme:</label>
-      <select id="themeSelect" class="styled-select"></select>
-      <button id="generateLinkBtn" class="styled-btn">Generate Link</button>
-      <input id="newRoomInput" placeholder="New room name" class="styled-input">
-      <button id="joinRoomBtn" class="styled-btn">Join Room</button>
-    </div>
-  </header>
-
-  <!-- Main Chat + Sidebar -->
-  <main id="chatContent">
-    <!-- GC & DM List Sidebar -->
-    <aside id="sidebar">
-      <h3>Group Chats</h3>
-      <ul id="gcList"></ul>
-      <h3>Direct Messages</h3>
-      <ul id="dmUserList"></ul>
-    </aside>
-
-    <!-- Messages Panel -->
-    <section id="messagesContainer">
-      <div id="gcMessages" class="messages-panel"></div>
-
-      <!-- DM Panel (hidden by default) -->
-      <div id="dmPanel" class="hidden">
-        <div id="dmHeader" class="dm-header">DM</div>
-        <div id="dmMessages" class="messages-panel"></div>
-        <div id="dmInputArea">
-          <input id="dmMessageInput" type="text" placeholder="Type a message..." autocomplete="off">
-          <button id="dmSendBtn" class="styled-btn">Send</button>
-          <button id="dmCloseBtn" class="styled-btn">Close</button>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- Input Area for GC -->
-  <footer id="inputArea">
-    <input id="messageInput" type="text" placeholder="Type a message..." autocomplete="off">
-    <button id="sendBtn" class="styled-btn">Send</button>
-  </footer>
-
-</div>
-
-<script type="module" src="firebase.js"></script>
-<script type="module" src="script.js"></script>
-
+  <div id="app"></div>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
