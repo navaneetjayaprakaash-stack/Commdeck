@@ -1,13 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Chat Room</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multi-Room Chat with DMs</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="app"></div>
-  <script type="module" src="script.js"></script>
+  <div id="app">
+    <!-- Sidebar -->
+    <div id="sidebar">
+      <div class="list-section">
+        <h3>Group Chats</h3>
+        <ul id="userList"></ul>
+      </div>
+      <div class="list-section">
+        <h3>URL Generator</h3>
+        <input type="text" id="urlInput" placeholder="Enter a valid URL" />
+        <button onclick="generateURL()">Generate</button>
+      </div>
+      <div class="list-section">
+        <h3>Direct Messages</h3>
+        <ul id="dmList"></ul>
+      </div>
+      <div class="list-section">
+        <h3>RGB Color</h3>
+        <input type="color" id="rgbPicker" onchange="updateRGB()" />
+      </div>
+      <div class="list-section">
+        <h3>Themes</h3>
+        <select id="themeSelector" onchange="switchTheme(this.value)">
+          <option value="sunset-glow">Sunset Glow</option>
+          <option value="purple-haze">Purple Haze</option>
+          <option value="deep-ocean">Deep Ocean</option>
+          <!-- Add all 20 themes here -->
+        </select>
+      </div>
+    </div>
+
+    <!-- Chat Area -->
+    <div id="chat-area">
+      <div id="chat-header">
+        <span id="roomTitle">Room: general</span>
+        <button onclick="changeName()" style="float:right;">Change Name</button>
+      </div>
+      <div id="chat-messages"></div>
+      <div id="input-area">
+        <input id="messageInput" placeholder="Type a message..." />
+        <button onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+
+    <!-- DM Panel -->
+    <div id="dm-panel" class="hidden">
+      <div id="dm-header">
+        <span>Direct Messages</span>
+        <button onclick="toggleDM()">Close</button>
+      </div>
+      <div id="dm-messages"></div>
+      <div id="dm-input">
+        <input id="dmMessageInput" placeholder="Type a DM..." />
+        <button onclick="sendDM()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
