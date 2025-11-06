@@ -2,7 +2,7 @@ const socket = io();
 let username = "";
 let room = "";
 
-// Load theme from localStorage
+// Load saved theme
 const savedTheme = localStorage.getItem('theme');
 if (savedTheme) switchTheme(savedTheme);
 
@@ -12,7 +12,7 @@ function switchTheme(themeName) {
 }
 
 function joinChat() {
-  username = prompt("Enter your name") || "Guest";
+  username = prompt("Enter your name") || "";
   room = new URLSearchParams(window.location.search).get("room") || "general";
   document.getElementById("roomTitle").textContent = `Room: ${room}`;
   socket.emit("joinRoom", { username, room });
@@ -29,14 +29,11 @@ function sendMessage() {
 socket.on("chatMessage", (msg) => {
   const div = document.createElement("div");
   div.classList.add("message");
-  if (msg.user === username) {
-    div.classList.add("self");
-  } else if (msg.user === "System") {
-    div.classList.add("system");
-  } else {
-    div.classList.add("other");
-  }
-  div.innerHTML = `<b>${msg.user}:</b> ${msg.text}`;
+  if (msg.user === username) div.classList.add("self");
+  else if (msg.user === "System") div.classList.add("system");
+  else div.classList.add("other");
+
+  div.innerHTML = `<b>${msg.user}:</b> ${msg.text} <span style="font-size:0.8em;color:gray;">${msg.time || ""}</span>`;
   document.getElementById("chat-messages").appendChild(div);
   document.getElementById("chat-messages").scrollTop = document.getElementById("chat-messages").scrollHeight;
 });
@@ -49,8 +46,8 @@ socket.on("userList", (users) => {
     const li = document.createElement("li");
     li.textContent = u.username;
     li.onclick = () => {
-      const text = prompt(`Send a DM to ${u.username}:`);
-      if (text) socket.emit("privateMessage", { to: u.id, text });
+      document.getElementById("dmTarget").value = u.username;
+      toggleDM();
     };
     ul.appendChild(li);
   });
@@ -60,14 +57,7 @@ function changeName() {
   const newName = prompt("Enter new name:");
   if (newName) {
     username = newName;
-    alert(`Name changed to ${username}`);
-  }
-}
-
-function generateURL() {
-  const url = document.getElementById("urlInput").value.trim();
-  if (url) {
-    alert(`Generated URL: ${window.location.origin}?room=${encodeURIComponent(url)}`);
+    socket.emit("changeUsername", newName);
   }
 }
 
@@ -81,10 +71,10 @@ function toggleDM() {
 }
 
 function sendDM() {
+  const toUser = document.getElementById("dmTarget").value;
   const text = document.getElementById("dmMessageInput").value.trim();
-  if (text) {
-    // Replace with actual DM logic
-    alert(`DM sent: ${text}`);
+  if (text && toUser) {
+    socket.emit("privateMessage", { to: toUser, text });
     document.getElementById("dmMessageInput").value = "";
   }
 }
