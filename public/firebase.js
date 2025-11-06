@@ -1,13 +1,13 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDw-qqvRKmbu9R9b6sk70s4vbxJt-H0NGk",
-  authDomain: "my-chat-room-1d84f.firebaseapp.com",
-  projectId: "my-chat-room-1d84f",
-  storageBucket: "my-chat-room-1d84f.appspot.com",
-  messagingSenderId: "747796328971",
-  appId: "1:747796328971:web:beb5c15265855e169e8d0e"
+export const firebaseConfig = {
+  apiKey: "YOUR_KEY",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_BUCKET",
+  messagingSenderId: "YOUR_SENDER",
+  appId: "YOUR_APP_ID"
 };
 
 const app = initializeApp(firebaseConfig);
