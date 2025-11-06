@@ -1,72 +1,103 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="default">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Chat App</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multi-Room Chat with DMs</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    #container {
+      width: 100%;
+      max-width: 800px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    #joinScreen, #chatScreen {
+      padding: 20px;
+    }
+    #messages {
+      height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-bottom: 10px;
+      background: #fafafa;
+    }
+    #messages div {
+      margin: 5px 0;
+    }
+    #messages .system {
+      color: gray;
+      font-style: italic;
+    }
+    #inputArea {
+      display: flex;
+    }
+    #inputArea input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px 0 0 5px;
+    }
+    #inputArea button {
+      padding: 10px 15px;
+      border: none;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      border-radius: 0 5px 5px 0;
+    }
+    #inputArea button:hover {
+      background: #0056b3;
+    }
+    @media (max-width: 600px) {
+      #messages { height: 200px; }
+    }
+  </style>
 </head>
-
 <body>
-
-<div id="app">
-
-  <!-- Sidebar -->
-  <div id="sidebar">
-    <!-- Username Section -->
-    <div class="list-section">
-      <strong id="display-username"></strong>
-      <button id="change-name-btn">Change Name</button>
+  <div id="container">
+    <!-- Join screen -->
+    <div id="joinScreen">
+      <h2>Join Chatroom</h2>
+      <input type="text" id="usernameInput" placeholder="Enter your name" />
+      <input type="text" id="roomInput" placeholder="Enter room name (or leave blank for URL room)" />
+      <button onclick="joinChat()">Join</button>
     </div>
 
-    <!-- Theme Selector -->
-    <div class="list-section">
-      <label>Select Theme:</label>
-      <select id="theme-select"></select>
-    </div>
+    <!-- Chat screen -->
+    <div id="chatScreen" style="display:none;">
+      <h2 id="roomTitle">Chatroom</h2>
+      <div style="display: flex; gap: 10px;">
+        <!-- Messages -->
+        <div style="flex: 3;">
+          <div id="messages"></div>
+          <div id="inputArea">
+            <input id="messageInput" placeholder="Type a message..." />
+            <button onclick="sendMessage()">Send</button>
+          </div>
+        </div>
 
-    <!-- Group Chats -->
-    <div class="list-section">
-      <h3>Group Chats</h3>
-      <ul id="room-list"></ul>
-      <button id="create-room-btn">+ Create Room</button>
-    </div>
-
-    <!-- Direct Messages -->
-    <div class="list-section">
-      <h3>Direct Messages</h3>
-      <ul id="dm-list"></ul>
-    </div>
-  </div>
-
-  <!-- Chat Area -->
-  <div id="chat-area">
-    <div id="chat-header"><span id="chat-title"></span></div>
-    <div id="chat-messages"></div>
-
-    <div id="input-area">
-      <input id="message-input" type="text" autocomplete="off">
-      <button id="send-btn">Send</button>
+        <!-- User list -->
+        <div style="flex: 1; border-left: 1px solid #ddd; padding-left: 10px;">
+          <h3>Users</h3>
+          <ul id="userList"></ul>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- DM Panel -->
-  <div id="dm-panel" class="hidden">
-    <div id="dm-header">
-      <span id="dm-title"></span>
-      <button id="close-dm-btn">X</button>
-    </div>
-    <div id="dm-messages"></div>
-
-    <div id="dm-input">
-      <input id="dm-message-input" type="text">
-      <button id="dm-send-btn">Send</button>
-    </div>
-  </div>
-
-</div>
-
-<script type="module" src="firebase.js"></script>
-<script type="module" src="app.js"></script>
-
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
