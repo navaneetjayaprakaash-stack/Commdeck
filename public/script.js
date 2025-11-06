@@ -1,80 +1,158 @@
 const socket = io();
-let username = "";
-let room = "";
+let username = localStorage.username || prompt("Enter username:");
+localStorage.username = username;
 
-// Load saved theme
-const savedTheme = localStorage.getItem('theme');
-if (savedTheme) switchTheme(savedTheme);
+let currentRoom = "general";
+let dmTarget = null;
 
-function switchTheme(themeName) {
-  document.body.setAttribute('data-theme', themeName);
-  localStorage.setItem('theme', themeName);
-}
+document.getElementById("currentRoom").textContent = currentRoom;
 
-function joinChat() {
-  username = prompt("Enter your name") || "";
-  room = new URLSearchParams(window.location.search).get("room") || "general";
-  document.getElementById("roomTitle").textContent = `Room: ${room}`;
-  socket.emit("joinRoom", { username, room });
-}
+socket.emit("join", { username, room: currentRoom });
 
-function sendMessage() {
-  const message = document.getElementById("messageInput").value.trim();
-  if (message) {
-    socket.emit("chatMessage", { user: username, text: message, room });
-    document.getElementById("messageInput").value = "";
-  }
-}
+// UI Elements
+const msgInput = document.getElementById("msgInput");
+const sendBtn = document.getElementById("sendBtn");
+const chatMessages = document.getElementById("chat-messages");
+const roomList = document.getElementById("roomList");
+const userList = document.getElementById("userList");
 
-socket.on("chatMessage", (msg) => {
-  const div = document.createElement("div");
-  div.classList.add("message");
-  if (msg.user === username) div.classList.add("self");
-  else if (msg.user === "System") div.classList.add("system");
-  else div.classList.add("other");
+const dmPanel = document.getElementById("dm-panel");
+const dmUser = document.getElementById("dmUser");
+const dmMessages = document.getElementById("dm-messages");
+const dmInput = document.getElementById("dmInput");
+const dmSend = document.getElementById("dmSend");
 
-  div.innerHTML = `<b>${msg.user}:</b> ${msg.text} <span style="font-size:0.8em;color:gray;">${msg.time || ""}</span>`;
-  document.getElementById("chat-messages").appendChild(div);
-  document.getElementById("chat-messages").scrollTop = document.getElementById("chat-messages").scrollHeight;
+const themeSelect = document.getElementById("themeSelect");
+
+// Load Themes
+const themes = [...document.styleSheets[0].cssRules]
+  .filter(r => r.selectorText?.startsWith("body[data-theme"))
+  .map(r => r.selectorText.match(/'(.+)'/)[1]);
+
+themes.forEach(t => {
+  let opt = document.createElement("option");
+  opt.value = t;
+  opt.textContent = t;
+  themeSelect.appendChild(opt);
 });
 
-socket.on("userList", (users) => {
-  const ul = document.getElementById("userList");
-  ul.innerHTML = "";
-  users.forEach((u) => {
+themeSelect.value = localStorage.theme || "default";
+document.body.dataset.theme = themeSelect.value;
+themeSelect.onchange = () => {
+  localStorage.theme = themeSelect.value;
+  document.body.dataset.theme = themeSelect.value;
+};
+
+// Persistent Room History
+function saveRoomMessage(room, msg) {
+  let logs = JSON.parse(localStorage.getItem("room_" + room) || "[]");
+  logs.push(msg);
+  localStorage.setItem("room_" + room, JSON.stringify(logs));
+}
+
+function loadRoomMessages(room) {
+  chatMessages.innerHTML = "";
+  (JSON.parse(localStorage.getItem("room_" + room) || "[]")).forEach(printMessage);
+}
+
+function printMessage({ sender, text, system }) {
+  let div = document.createElement("div");
+  div.className = system ? "message system" : (sender === username ? "message self" : "message other");
+  div.textContent = system ? text : `${sender}: ${text}`;
+  chatMessages.appendChild(div);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Persistent DM History
+function saveDM(user, msg) {
+  let logs = JSON.parse(localStorage.getItem("dm_" + user) || "[]");
+  logs.push(msg);
+  localStorage.setItem("dm_" + user, JSON.stringify(logs));
+}
+
+function loadDM(user) {
+  dmMessages.innerHTML = "";
+  (JSON.parse(localStorage.getItem("dm_" + user) || "[]")).forEach(msg => {
+    let div = document.createElement("div");
+    div.className = msg.from === username ? "message self" : "message other";
+    div.textContent = msg.text;
+    dmMessages.appendChild(div);
+  });
+  dmMessages.scrollTop = dmMessages.scrollHeight;
+}
+
+// Room Switch
+function joinRoom(r) {
+  currentRoom = r;
+  document.getElementById("currentRoom").textContent = r;
+  socket.emit("join", { username, room: r });
+  loadRoomMessages(r);
+}
+
+// Send Room Message
+sendBtn.onclick = () => {
+  let text = msgInput.value.trim();
+  if (!text) return;
+  socket.emit("chatMessage", { sender: username, room: currentRoom, text });
+  saveRoomMessage(currentRoom, { sender: username, text });
+  msgInput.value = "";
+};
+
+// Receive Room Message
+socket.on("message", msg => {
+  saveRoomMessage(currentRoom, msg);
+  printMessage(msg);
+});
+
+// Update Users
+socket.on("roomUsers", ({ users }) => {
+  userList.innerHTML = "";
+  users.forEach(u => {
     if (u.username === username) return;
-    const li = document.createElement("li");
+    let li = document.createElement("li");
     li.textContent = u.username;
-    li.onclick = () => {
-      document.getElementById("dmTarget").value = u.username;
-      toggleDM();
-    };
-    ul.appendChild(li);
+    li.onclick = () => openDM(u.username);
+    userList.appendChild(li);
   });
 });
 
-function changeName() {
-  const newName = prompt("Enter new name:");
-  if (newName) {
-    username = newName;
-    socket.emit("changeUsername", newName);
-  }
+// Open DM
+function openDM(user) {
+  dmTarget = user;
+  dmPanel.classList.remove("hidden");
+  dmUser.textContent = user;
+  loadDM(user);
 }
 
-function updateRGB() {
-  const color = document.getElementById("rgbPicker").value;
-  document.documentElement.style.setProperty('--primary', color);
-}
+document.getElementById("closeDM").onclick = () => dmPanel.classList.add("hidden");
 
-function toggleDM() {
-  document.getElementById("dm-panel").classList.toggle("hidden");
-}
+// Send DM
+dmSend.onclick = () => {
+  let text = dmInput.value.trim();
+  if (!text) return;
 
-function sendDM() {
-  const toUser = document.getElementById("dmTarget").value;
-  const text = document.getElementById("dmMessageInput").value.trim();
-  if (text && toUser) {
-    socket.emit("privateMessage", { to: toUser, text });
-    document.getElementById("dmMessageInput").value = "";
-  }
-}
+  socket.emit("dm", { to: dmTarget, from: username, text });
+
+  saveDM(dmTarget, { from: username, text });
+  loadDM(dmTarget);
+
+  dmInput.value = "";
+};
+
+// Receive DM
+socket.on("dm", ({ from, to, text }) => {
+  let other = from === username ? to : from;
+  saveDM(other, { from, text });
+
+  if (dmTarget === other) loadDM(other);
+});
+
+// Rooms List
+["general", "gaming", "school", "random"].forEach(r => {
+  let li = document.createElement("li");
+  li.textContent = r;
+  li.onclick = () => joinRoom(r);
+  roomList.appendChild(li);
+});
+
+loadRoomMessages(currentRoom);
