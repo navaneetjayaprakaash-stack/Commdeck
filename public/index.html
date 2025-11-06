@@ -1,92 +1,54 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Multi-Room Chat with DMs</title>
-  <!-- Link to your CSS -->
-  <link rel="stylesheet" href="style.css" />
+  <title>Chat</title>
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
   <div id="app">
-    <!-- Sidebar -->
+
     <div id="sidebar">
+      <div class="list-section">
+        <h3>Rooms</h3>
+        <ul id="roomList"></ul>
+      </div>
+
       <div class="list-section">
         <h3>Users</h3>
         <ul id="userList"></ul>
       </div>
 
-      <div class="list-section">
-        <h3>URL Generator</h3>
-        <input type="text" id="urlInput" placeholder="Enter room name" />
-        <button onclick="generateURL()">Generate</button>
-      </div>
-
-      <div class="list-section">
-        <h3>RGB Color</h3>
-        <input type="color" id="rgbPicker" onchange="updateRGB()" />
-      </div>
-
-      <div class="list-section">
-        <h3>Themes</h3>
-        <select id="themeSelector" onchange="switchTheme(this.value)">
-          <option value="sunset-glow">Sunset Glow</option>
-          <option value="purple-haze">Purple Haze</option>
-          <option value="deep-ocean">Deep Ocean</option>
-          <option value="royal-blue">Royal Blue</option>
-          <option value="sky-breeze">Sky Breeze</option>
-          <option value="hot-pink">Hot Pink</option>
-          <option value="molten-orange">Molten Orange</option>
-          <option value="golden-hour">Golden Hour</option>
-          <option value="rose-red">Rose Red</option>
-          <option value="violet-dream">Violet Dream</option>
-          <option value="indigo-night">Indigo Night</option>
-          <option value="mystic-purple">Mystic Purple</option>
-          <option value="fuchsia-glow">Fuchsia Glow</option>
-          <option value="electric-blue">Electric Blue</option>
-          <option value="aqua-mist">Aqua Mist</option>
-          <option value="magenta-pulse">Magenta Pulse</option>
-          <option value="blazing-orange">Blazing Orange</option>
-          <option value="sunlit-gold">Sunlit Gold</option>
-          <option value="royal-violet">Royal Violet</option>
-          <option value="night-indigo">Night Indigo</option>
-        </select>
-      </div>
+      <select id="themeSelect"></select>
     </div>
 
-    <!-- Chat Area -->
     <div id="chat-area">
-      <div id="chat-header">
-        <span id="roomTitle">Room: general</span>
-        <button onclick="changeName()" style="float:right;">Change Name</button>
-      </div>
+      <div id="chat-header"><span id="currentRoom"></span></div>
       <div id="chat-messages"></div>
+
       <div id="input-area">
-        <input id="messageInput" placeholder="Type a message..." />
-        <button onclick="sendMessage()">Send</button>
+        <input id="msgInput" placeholder="Message...">
+        <button id="sendBtn">Send</button>
       </div>
     </div>
 
-    <!-- DM Panel -->
     <div id="dm-panel" class="hidden">
       <div id="dm-header">
-        <span>Direct Messages</span>
-        <button onclick="toggleDM()">Close</button>
+        <span id="dmUser"></span>
+        <button id="closeDM">×</button>
       </div>
+
       <div id="dm-messages"></div>
+
       <div id="dm-input">
-        <input id="dmTarget" placeholder="Recipient username" />
-        <input id="dmMessageInput" placeholder="Type a DM..." />
-        <button onclick="sendDM()">Send</button>
+        <input id="dmInput" placeholder="Message...">
+        <button id="dmSend">Send</button>
       </div>
     </div>
+
   </div>
 
-  <!-- Socket.IO -->
-  <script src="/socket.io/socket.io.js"></script>
-  <!-- Firebase client SDK -->
-  <script type="module" src="firebase.js"></script>
-  <!-- Client logic -->
-  <script src="script.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
