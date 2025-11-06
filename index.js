@@ -1,7 +1,11 @@
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
-const path = require("path");
+import express from "express";
+import http from "http";
+import { Server } from "socket.io";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const server = http.createServer(app);
@@ -9,72 +13,66 @@ const io = new Server(server);
 
 app.use(express.static(path.join(__dirname, "public")));
 
-// Track connected users
 const users = {};
 
-// Helper: get users in a room
 function getUsersInRoom(room) {
   return Object.entries(users)
     .filter(([id, user]) => user.room === room)
     .map(([id, user]) => ({ id, username: user.username }));
 }
 
-// Socket.IO
 io.on("connection", (socket) => {
-  console.log("A user connected:", socket.id);
+  console.log("Connected:", socket.id);
 
-  // Join room
   socket.on("joinRoom", ({ username, room }) => {
+    if (!username) username = `Anon-${socket.id.slice(0, 5)}`;
+
+    const existing = getUsersInRoom(room).map(u => u.username);
+    if (existing.includes(username)) {
+      username = `${username}_${Math.floor(Math.random() * 1000)}`;
+      socket.emit("chatMessage", { user: "System", text: `Name taken, you are now ${username}` });
+    }
+
     users[socket.id] = { username, room };
     socket.join(room);
 
-    // Welcome message to self
-    socket.emit("chatMessage", { user: "System", text: `Welcome to ${room}, ${username}! 🎉` });
+    socket.emit("chatMessage", { user: "System", text: `Welcome to ${room}, ${username}! 🎉`, time: new Date().toLocaleTimeString() });
+    socket.to(room).emit("chatMessage", { user: "System", text: `${username} joined the room`, time: new Date().toLocaleTimeString() });
 
-    // Notify others
-    socket.to(room).emit("chatMessage", { user: "System", text: `${username} joined the room` });
-
-    // Update user list
     io.to(room).emit("userList", getUsersInRoom(room));
   });
 
-  // Chat message
   socket.on("chatMessage", (msg) => {
-    io.to(msg.room).emit("chatMessage", msg);
+    io.to(msg.room).emit("chatMessage", { ...msg, time: new Date().toLocaleTimeString() });
   });
 
-  // Private message (DM)
   socket.on("privateMessage", ({ to, text }) => {
     const fromUser = users[socket.id];
     if (fromUser && users[to]) {
-      io.to(to).emit("chatMessage", { user: `(DM from ${fromUser.username})`, text });
-      socket.emit("chatMessage", { user: `(DM to ${users[to].username})`, text });
+      io.to(to).emit("chatMessage", { user: `(DM from ${fromUser.username})`, text, time: new Date().toLocaleTimeString() });
+      socket.emit("chatMessage", { user: `(DM to ${users[to].username})`, text, time: new Date().toLocaleTimeString() });
     }
   });
 
-  // Change username
   socket.on("changeUsername", (newUsername) => {
     const user = users[socket.id];
     if (user) {
       const oldUsername = user.username;
       user.username = newUsername;
-      const room = user.room;
-      io.to(room).emit("chatMessage", { user: "System", text: `${oldUsername} changed name to ${newUsername}` });
-      io.to(room).emit("userList", getUsersInRoom(room));
+      io.to(user.room).emit("chatMessage", { user: "System", text: `${oldUsername} changed name to ${newUsername}`, time: new Date().toLocaleTimeString() });
+      io.to(user.room).emit("userList", getUsersInRoom(user.room));
     }
   });
 
-  // Disconnect
   socket.on("disconnect", () => {
     if (users[socket.id]) {
       const { username, room } = users[socket.id];
-      io.to(room).emit("chatMessage", { user: "System", text: `${username} left the room 👋` });
+      io.to(room).emit("chatMessage", { user: "System", text: `${username} left the room 👋`, time: new Date().toLocaleTimeString() });
       delete users[socket.id];
       io.to(room).emit("userList", getUsersInRoom(room));
     }
   });
 });
 
-// Server start
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
