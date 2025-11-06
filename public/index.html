@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Multi-Room Chat with DMs</title>
+  <!-- Link to your CSS -->
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -11,29 +12,44 @@
     <!-- Sidebar -->
     <div id="sidebar">
       <div class="list-section">
-        <h3>Group Chats</h3>
+        <h3>Users</h3>
         <ul id="userList"></ul>
       </div>
+
       <div class="list-section">
         <h3>URL Generator</h3>
-        <input type="text" id="urlInput" placeholder="Enter a valid URL" />
+        <input type="text" id="urlInput" placeholder="Enter room name" />
         <button onclick="generateURL()">Generate</button>
       </div>
-      <div class="list-section">
-        <h3>Direct Messages</h3>
-        <ul id="dmList"></ul>
-      </div>
+
       <div class="list-section">
         <h3>RGB Color</h3>
         <input type="color" id="rgbPicker" onchange="updateRGB()" />
       </div>
+
       <div class="list-section">
         <h3>Themes</h3>
         <select id="themeSelector" onchange="switchTheme(this.value)">
           <option value="sunset-glow">Sunset Glow</option>
           <option value="purple-haze">Purple Haze</option>
           <option value="deep-ocean">Deep Ocean</option>
-          <!-- Add all 20 themes here -->
+          <option value="royal-blue">Royal Blue</option>
+          <option value="sky-breeze">Sky Breeze</option>
+          <option value="hot-pink">Hot Pink</option>
+          <option value="molten-orange">Molten Orange</option>
+          <option value="golden-hour">Golden Hour</option>
+          <option value="rose-red">Rose Red</option>
+          <option value="violet-dream">Violet Dream</option>
+          <option value="indigo-night">Indigo Night</option>
+          <option value="mystic-purple">Mystic Purple</option>
+          <option value="fuchsia-glow">Fuchsia Glow</option>
+          <option value="electric-blue">Electric Blue</option>
+          <option value="aqua-mist">Aqua Mist</option>
+          <option value="magenta-pulse">Magenta Pulse</option>
+          <option value="blazing-orange">Blazing Orange</option>
+          <option value="sunlit-gold">Sunlit Gold</option>
+          <option value="royal-violet">Royal Violet</option>
+          <option value="night-indigo">Night Indigo</option>
         </select>
       </div>
     </div>
@@ -59,13 +75,18 @@
       </div>
       <div id="dm-messages"></div>
       <div id="dm-input">
+        <input id="dmTarget" placeholder="Recipient username" />
         <input id="dmMessageInput" placeholder="Type a DM..." />
         <button onclick="sendDM()">Send</button>
       </div>
     </div>
   </div>
 
+  <!-- Socket.IO -->
   <script src="/socket.io/socket.io.js"></script>
+  <!-- Firebase client SDK -->
+  <script type="module" src="firebase.js"></script>
+  <!-- Client logic -->
   <script src="script.js"></script>
 </body>
 </html>
