@@ -1,54 +1,72 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" data-theme="default">
 <head>
-  <title>Chat</title>
+  <meta charset="UTF-8">
+  <title>Chat App</title>
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-  <div id="app">
 
-    <div id="sidebar">
-      <div class="list-section">
-        <h3>Rooms</h3>
-        <ul id="roomList"></ul>
-      </div>
+<div id="app">
 
-      <div class="list-section">
-        <h3>Users</h3>
-        <ul id="userList"></ul>
-      </div>
-
-      <select id="themeSelect"></select>
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <!-- Username Section -->
+    <div class="list-section">
+      <strong id="display-username"></strong>
+      <button id="change-name-btn">Change Name</button>
     </div>
 
-    <div id="chat-area">
-      <div id="chat-header"><span id="currentRoom"></span></div>
-      <div id="chat-messages"></div>
-
-      <div id="input-area">
-        <input id="msgInput" placeholder="Message...">
-        <button id="sendBtn">Send</button>
-      </div>
+    <!-- Theme Selector -->
+    <div class="list-section">
+      <label>Select Theme:</label>
+      <select id="theme-select"></select>
     </div>
 
-    <div id="dm-panel" class="hidden">
-      <div id="dm-header">
-        <span id="dmUser"></span>
-        <button id="closeDM">×</button>
-      </div>
-
-      <div id="dm-messages"></div>
-
-      <div id="dm-input">
-        <input id="dmInput" placeholder="Message...">
-        <button id="dmSend">Send</button>
-      </div>
+    <!-- Group Chats -->
+    <div class="list-section">
+      <h3>Group Chats</h3>
+      <ul id="room-list"></ul>
+      <button id="create-room-btn">+ Create Room</button>
     </div>
 
+    <!-- Direct Messages -->
+    <div class="list-section">
+      <h3>Direct Messages</h3>
+      <ul id="dm-list"></ul>
+    </div>
   </div>
 
-<script src="/socket.io/socket.io.js"></script>
-<script src="script.js"></script>
+  <!-- Chat Area -->
+  <div id="chat-area">
+    <div id="chat-header"><span id="chat-title"></span></div>
+    <div id="chat-messages"></div>
+
+    <div id="input-area">
+      <input id="message-input" type="text" autocomplete="off">
+      <button id="send-btn">Send</button>
+    </div>
+  </div>
+
+  <!-- DM Panel -->
+  <div id="dm-panel" class="hidden">
+    <div id="dm-header">
+      <span id="dm-title"></span>
+      <button id="close-dm-btn">X</button>
+    </div>
+    <div id="dm-messages"></div>
+
+    <div id="dm-input">
+      <input id="dm-message-input" type="text">
+      <button id="dm-send-btn">Send</button>
+    </div>
+  </div>
+
+</div>
+
+<script type="module" src="firebase.js"></script>
+<script type="module" src="app.js"></script>
+
 </body>
 </html>
