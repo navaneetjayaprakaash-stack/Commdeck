@@ -5,6 +5,9 @@ let room = "";
 let dmRecipientId = null;
 let dmRecipientName = "";
 
+// Map to store User IDs and Usernames, crucial for DM functionality
+let activeUsersMap = new Map();
+
 // Helper to generate a unique ID part (simple for this example)
 const generateId = () => Math.random().toString(36).substring(2, 6);
 
@@ -19,16 +22,38 @@ function initializeChat() {
     room = urlParams.get("room") || "general";
     
     // 3. Update UI and Join
-    document.getElementById("roomTitle").textContent = room;
-    document.getElementById("currentRoomDisplay").textContent = room;
-    document.getElementById("messageInput").placeholder = `Message #${room}`;
+    updateRoomUI(room);
+    
+    // 4. Load theme
+    const savedTheme = localStorage.getItem('chatTheme') || 'dark-discord';
+    document.getElementById('themeSelector').value = savedTheme;
+    applyTheme(savedTheme);
 
     socket.emit("joinRoom", { username, room });
 }
 
-// Ensure chat initializes immediately on load (Replaces the old joinChat())
+// Ensure chat initializes immediately on load
 window.onload = initializeChat;
 
+// Utility function to update all room-related UI elements
+function updateRoomUI(newRoom) {
+    room = newRoom;
+    document.getElementById("roomTitle").textContent = room;
+    document.getElementById("currentRoomDisplay").textContent = room;
+    document.getElementById("messageInput").placeholder = `Message #${room}`;
+    // Clear chat when switching rooms
+    document.getElementById("chat-messages").innerHTML = "";
+    // Hide DM panel when switching GC
+    closeDMPanel();
+}
+
+// --- Room Switching (FIXED: Enables switching back and forth) ---
+function switchRoom(newRoomName) {
+    if (newRoomName === room) return; // Already in this room
+
+    // Navigate to the new room URL to trigger a full rejoin on the server
+    window.location.href = `/?room=${newRoomName}`;
+}
 
 // --- User & Room Management ---
 
@@ -38,7 +63,7 @@ function changeUsername() {
         const oldUsername = username;
         username = newUsername.trim();
         document.getElementById("currentUsername").textContent = username;
-        // Notify the server/room about the change
+        
         socket.emit("chatMessage", { user: "System", text: `${oldUsername} changed name to ${username}`, room });
         
         // Re-emit joinRoom to update the server's tracking of this socket's username (essential!)
@@ -50,8 +75,8 @@ function generateNewRoom() {
     const newRoomName = prompt("Enter the name for the new room:");
     if (newRoomName && newRoomName.trim()) {
         const newRoom = newRoomName.trim().toLowerCase().replace(/\s/g, '-');
-        // Navigate to the new room URL
-        window.location.href = `/?room=${newRoom}`;
+        // Use the new switchRoom logic
+        switchRoom(newRoom);
     }
 }
 
@@ -98,7 +123,6 @@ function openDMPanel(userId, userName) {
     document.getElementById("dmRecipientName").textContent = `DM with ${userName}`;
     document.getElementById("dm-panel").classList.remove("hidden");
     
-    // Clear old DM messages (optional, but good for UX)
     document.getElementById("dm-messages").innerHTML = ""; 
     
     // Switch input focus
@@ -117,15 +141,15 @@ function sendDM() {
         // Send the private message to the server
         socket.emit("privateMessage", { to: dmRecipientId, text });
         
-        // Locally render the message immediately
-        displayMessage({ user: `(DM to ${dmRecipientName})`, text }, "dm-messages", "self");
+        // Locally render the message immediately (FIXED: now uses the self class)
+        displayMessage({ user: username, text }, "dm-messages", "self-dm"); 
         
         document.getElementById("dmMessageInput").value = "";
     }
 }
 
 
-// --- Message Rendering ---
+// --- Message Rendering (FIXED: Handles DMs correctly) ---
 
 function displayMessage(msg, targetId = "chat-messages", messageType = "") {
     const target = document.getElementById(targetId);
@@ -135,79 +159,83 @@ function displayMessage(msg, targetId = "chat-messages", messageType = "") {
     if (msg.user === "System") {
         div.classList.add("system");
         div.textContent = msg.text;
-    } else if (msg.user.startsWith("(DM")) {
-        // Check if the DM is to/from the currently open recipient
-        const isCurrentDM = targetId === "dm-messages" || 
-                           msg.user.includes(dmRecipientName) ||
-                           msg.user.includes(username);
-
-        if (isCurrentDM && targetId === "dm-messages") {
-            // Render in DM panel
-            div.classList.add(msg.user.includes(`DM from ${dmRecipientName}`) ? "other" : "self");
-            div.innerHTML = msg.text; // DM messages don't need the prepended username in the DM panel
-        } else {
-            // Render in GC area as a notification
-            div.classList.add("system");
-            div.style.color = "purple"; // Retain the purple color hint
-            div.innerHTML = `**${msg.user}:** ${msg.text}`;
-            target.appendChild(div);
-        }
-        
+    } else if (targetId === "dm-messages") {
+        // Direct Message Panel Rendering
+        div.classList.add(messageType === "self-dm" ? "self" : "other");
+        div.innerHTML = msg.text; 
     } else {
-        // Regular GC message
+        // General Chat Message Rendering
         const isSelf = msg.user === username;
-        div.classList.add(isSelf ? "self" : "other");
-        div.innerHTML = `<span>**${msg.user}:**</span> ${msg.text}`;
+        
+        // Check for incoming DM Notification in GC
+        if (msg.isDMNotification) {
+            div.classList.add("system");
+            div.style.backgroundColor = 'var(--primary)'; 
+            div.style.color = 'white';
+            div.innerHTML = `**[DM from ${msg.fromUsername}]** ${msg.text}`;
+        } else {
+            // Regular GC message
+            div.classList.add(isSelf ? "self" : "other");
+            div.innerHTML = `<span>**${msg.user}:**</span> ${msg.text}`;
+        }
     }
     
-    if (div.children.length > 0 || msg.user === "System") { // Only append if content exists
+    // Only append if content exists
+    if (div.children.length > 0 || msg.user === "System" || msg.isDMNotification || targetId === "dm-messages") {
         target.appendChild(div);
     }
     
     target.scrollTop = target.scrollHeight;
 }
 
-// Receive general/DM messages
+// Receive general messages
 socket.on("chatMessage", (msg) => {
-    // If it's a DM from another user, automatically open the DM panel
-    if (msg.user.startsWith("(DM from") && msg.user.includes(username)) {
-        const fromUserMatch = msg.user.match(/\(DM from (.*?)\)/);
-        if (fromUserMatch && fromUserMatch[1] !== dmRecipientName) {
-            // Find the sender's ID (this is complex as we only have the username here)
-            // For simplicity, we'll just display it in the DM panel if it's open, 
-            // otherwise, we show a notification.
-            // *The current server sends the full message, we'll rely on server-side logic 
-            // or the userList for the ID to properly open a new DM. 
-            // For now, if the DM panel is not open to this person, we notify in GC.*
-        }
-    }
-    
-    if (msg.user.startsWith("(DM")) {
-        // If DM is TO the current user, try to render it in the DM panel if open
-        if (dmRecipientName && msg.user.includes(`DM from ${dmRecipientName}`)) {
-            displayMessage(msg, "dm-messages", "other");
-            return;
-        } 
-        
-        // If DM is FROM the current user, try to render it in the DM panel if open
-        if (dmRecipientName && msg.user.includes(`DM to ${dmRecipientName}`)) {
-            displayMessage(msg, "dm-messages", "self");
-            return;
-        }
-    }
-    
-    // Default to the main chat window
+    // This is for General Chat messages only
     displayMessage(msg, "chat-messages");
 });
 
+// Dedicated listener for incoming DMs
+socket.on("privateMessageReceived", (msg) => {
+    // msg contains: { fromId, fromUsername, text }
+    
+    // 1. If DM panel is currently open for this sender, display it there
+    if (msg.fromId === dmRecipientId) {
+        displayMessage({ user: msg.fromUsername, text: msg.text }, "dm-messages", "other-dm");
+    } else {
+        // 2. Otherwise, show a notification in the main chat area
+        const notificationMsg = { 
+            fromUsername: msg.fromUsername, 
+            text: `(Received: ${msg.text.substring(0, 30)}${msg.text.length > 30 ? '...' : ''})`, 
+            isDMNotification: true // Flag to render as a notification
+        };
+        displayMessage(notificationMsg, "chat-messages");
+    }
+});
 
-// --- User List Update ---
+
+// --- User List Update & Room Links (FIXED: Added General Room Link) ---
 
 socket.on("userList", (users) => {
-    const ul = document.getElementById("userList");
-    ul.innerHTML = "";
+    const ulUsers = document.getElementById("userList");
+    const ulRooms = document.getElementById("roomList");
+
+    ulUsers.innerHTML = "";
+    ulRooms.innerHTML = ""; // Clear existing rooms before adding the general link
+    activeUsersMap.clear(); 
+
+    // Add a permanent link to the 'general' room
+    const generalRoomLi = document.createElement("li");
+    generalRoomLi.textContent = "# general";
+    generalRoomLi.style.cursor = "pointer";
+    generalRoomLi.style.fontWeight = room === 'general' ? 'bold' : 'normal';
+    generalRoomLi.style.backgroundColor = room === 'general' ? 'var(--input-bg)' : 'transparent';
+    generalRoomLi.onclick = () => switchRoom('general');
+    ulRooms.appendChild(generalRoomLi);
+
+    // List active users
     users.forEach((u) => {
-        // Add self to the user list so we can see who we are, but without the DM ability
+        activeUsersMap.set(u.id, u.username); 
+
         const isSelf = u.username === username;
         const li = document.createElement("li");
         li.textContent = isSelf ? `${u.username} (You)` : u.username;
@@ -219,7 +247,7 @@ socket.on("userList", (users) => {
                 openDMPanel(u.id, u.username);
             };
         }
-        ul.appendChild(li);
+        ulUsers.appendChild(li);
     });
 });
 
@@ -229,8 +257,3 @@ function applyTheme(themeName) {
     document.body.setAttribute('data-theme', themeName);
     localStorage.setItem('chatTheme', themeName);
 }
-
-// Load theme on startup
-const savedTheme = localStorage.getItem('chatTheme') || 'dark-discord';
-document.getElementById('themeSelector').value = savedTheme;
-applyTheme(savedTheme);
