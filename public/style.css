@@ -89,7 +89,7 @@ body, html {
     background: var(--button-hover, #4752c4);
 }
 
-/* User List Styling */
+/* User/Room List Styling */
 #sidebar ul {
     list-style: none;
     padding: 0;
@@ -282,71 +282,70 @@ body, html {
 }
 
 
-/* --- 21 Theme Styles --- */
+/* --- THEME STYLES (Fixed UI/UX for specific themes) --- */
 
 /* 1. Discord Dark (Default above) */
 body[data-theme='dark-discord'] { }
 
-/* 2. Sunset Glow (Your original) */
+/* 2. Sunset Glow */
 body[data-theme='sunset-glow'] { --primary:#ff6e6e; --bubble-self:#ff9f80; --bubble-other:#ff6e6e; --background:#2c1a1a; --sidebar-bg:#1a0c0c; --input-bg:#3c2c2c; }
 
-/* 3. Purple Haze (Your original) */
+/* 3. Purple Haze */
 body[data-theme='purple-haze'] { --primary:#9b59b6; --bubble-self:#a68ed3; --bubble-other:#9b59b6; --background:#1a0a1a; --sidebar-bg:#0a000a; --input-bg:#3c2c3c; }
 
-/* 4. Deep Ocean (Your original) */
+/* 4. Deep Ocean */
 body[data-theme='deep-ocean'] { --primary:#2980b9; --bubble-self:#3498db; --bubble-other:#2980b9; --background:#0a1a2a; --sidebar-bg:#000a1a; --input-bg:#1a2a3a; }
 
-/* 5. Royal Blue (Your original) */
+/* 5. Royal Blue */
 body[data-theme='royal-blue'] { --primary:#4169e1; --bubble-self:#637eea; --bubble-other:#4169e1; --background:#0a0f2a; --sidebar-bg:#00051a; --input-bg:#1a1f3a; }
 
-/* 6. Sky Breeze (Your original) */
+/* 6. Sky Breeze */
 body[data-theme='sky-breeze'] { --primary:#5dade2; --bubble-self:#85c1e9; --bubble-other:#5dade2; --background:#0a1a20; --sidebar-bg:#000a10; --input-bg:#1a2a30; }
 
-/* 7. Hot Pink (Your original) */
+/* 7. Hot Pink */
 body[data-theme='hot-pink'] { --primary:#ff69b4; --bubble-self:#ff85c1; --bubble-other:#ff69b4; --background:#2a0a1a; --sidebar-bg:#1a000a; --input-bg:#3a1a2a; }
 
-/* 8. Molten Orange (Your original) */
+/* 8. Molten Orange */
 body[data-theme='molten-orange'] { --primary:#ff4500; --bubble-self:#ff714d; --bubble-other:#ff4500; --background:#2a140a; --sidebar-bg:#1a0a00; --input-bg:#3a241a; }
 
-/* 9. Golden Hour (Your original) */
+/* 9. Golden Hour */
 body[data-theme='golden-hour'] { --primary:#f1c40f; --bubble-self:#f7dc6f; --bubble-other:#f1c40f; --background:#2a2a0a; --sidebar-bg:#1a1a00; --input-bg:#3a3a1a; }
 
-/* 10. Rose Red (Your original) */
+/* 10. Rose Red */
 body[data-theme='rose-red'] { --primary:#e74c3c; --bubble-self:#ec7063; --bubble-other:#e74c3c; --background:#2a0a0a; --sidebar-bg:#1a0000; --input-bg:#3a1a1a; }
 
-/* 11. Violet Dream (Your original) */
+/* 11. Violet Dream */
 body[data-theme='violet-dream'] { --primary:#8e44ad; --bubble-self:#a569bd; --bubble-other:#8e44ad; --background:#140a2a; --sidebar-bg:#0a001a; --input-bg:#241a3a; }
 
-/* 12. Indigo Night (Your original) */
-body[data-theme='indigo-night'] { --primary:#4b0082; --bubble-self:#5b2c82; --bubble-other:#4b0082; --background:#0a0a2a; --sidebar-bg:#00001a; --input-bg:#1a1a3a; }
+/* 12. Indigo Night (FIXED: Improved contrast and depth) */
+body[data-theme='indigo-night'] { --primary:#6f42c1; --bubble-self:#7952b3; --bubble-other:#4b0082; --background:#1a1c37; --sidebar-bg:#101128; --input-bg:#313456; }
 
-/* 13. Mystic Purple (Your original) */
+/* 13. Mystic Purple */
 body[data-theme='mystic-purple'] { --primary:#9b59b6; --bubble-self:#af7ac5; --bubble-other:#9b59b6; --background:#1a0a2a; --sidebar-bg:#0a001a; --input-bg:#2a1a3a; }
 
-/* 14. Fuchsia Glow (Your original) */
+/* 14. Fuchsia Glow */
 body[data-theme='fuchsia-glow'] { --primary:#d648a1; --bubble-self:#e066b1; --bubble-other:#d648a1; --background:#2a0a20; --sidebar-bg:#1a0010; --input-bg:#3a1a30; }
 
-/* 15. Electric Blue (Your original) */
-body[data-theme='electric-blue'] { --primary:#00ffff; --bubble-self:#66ffff; --bubble-other:#00ffff; --background:#0a1a1a; --sidebar-bg:#000a0a; --input-bg:#1a2a2a; }
+/* 15. Electric Blue (FIXED: Improved contrast and depth) */
+body[data-theme='electric-blue'] { --primary:#00b8d4; --bubble-self:#00e5ff; --bubble-other:#00b8d4; --background:#172a3a; --sidebar-bg:#0f1d2a; --input-bg:#2d4253; }
 
-/* 16. Aqua Mist (Your original) */
+/* 16. Aqua Mist */
 body[data-theme='aqua-mist'] { --primary:#7fdbff; --bubble-self:#a3e4ff; --bubble-other:#7fdbff; --background:#0a1a1a; --sidebar-bg:#000a0a; --input-bg:#1a2a2a; }
 
-/* 17. Magenta Pulse (Your original) */
+/* 17. Magenta Pulse */
 body[data-theme='magenta-pulse'] { --primary:#ff00ff; --bubble-self:#ff66ff; --bubble-other:#ff00ff; --background:#1a0a1a; --sidebar-bg:#0a000a; --input-bg:#2a1a2a; }
 
-/* 18. Blazing Orange (Your original) */
+/* 18. Blazing Orange */
 body[data-theme='blazing-orange'] { --primary:#ff6600; --bubble-self:#ff944d; --bubble-other:#ff6600; --background:#2a140a; --sidebar-bg:#1a0a00; --input-bg:#3a241a; }
 
-/* 19. Sunlit Gold (Your original) */
+/* 19. Sunlit Gold */
 body[data-theme='sunlit-gold'] { --primary:#ffd700; --bubble-self:#ffe066; --bubble-other:#ffd700; --background:#2a2a0a; --sidebar-bg:#1a1a00; --input-bg:#3a3a1a; }
 
-/* 20. Royal Violet (Your original) */
+/* 20. Royal Violet */
 body[data-theme='royal-violet'] { --primary:#7d3c98; --bubble-self:#9b59b6; --bubble-other:#7d3c98; --background:#1a0a2a; --sidebar-bg:#0a001a; --input-bg:#2a1a3a; }
 
-/* 21. Night Indigo (Your original) */
+/* 21. Night Indigo */
 body[data-theme='night-indigo'] { --primary:#191970; --bubble-self:#2e2e8f; --bubble-other:#191970; --background:#0a0a2a; --sidebar-bg:#00001a; --input-bg:#1a1a3a; }
 
-/* New theme for more than 20 */
-/* 22. Forest Green */
+/* Additional Theme */
 body[data-theme='forest-green'] { --primary:#27ae60; --bubble-self:#2ecc71; --bubble-other:#27ae60; --background:#1a2a1a; --sidebar-bg:#0a1a0a; --input-bg:#2a3a2a; }
