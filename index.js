@@ -7,51 +7,78 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+// Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname, "public")));
 
-const users = {}; // Track connected users
+// Track connected users: { socket.id: { username, room, firebaseId } }
+const users = {}; 
 
 io.on("connection", (socket) => {
-  console.log("A user connected");
+    console.log("A user connected:", socket.id);
 
-  socket.on("joinRoom", ({ username, room }) => {
-    users[socket.id] = { username, room };
-    socket.join(room);
+    // joinRoom now accepts and stores the Firebase UID (firebaseId)
+    socket.on("joinRoom", ({ username, room, firebaseId }) => {
+        users[socket.id] = { username, room, firebaseId };
+        socket.join(room);
 
-    // Welcome + notify
-    socket.emit("chatMessage", { user: "System", text: `Welcome to ${room}, ${username}! 🎉` });
-    socket.to(room).emit("chatMessage", { user: "System", text: `${username} joined the room` });
+        // Send the client their own Socket ID and confirmation
+        socket.emit("clientInfo", { userId: socket.id, room });
 
-    // Update user list
-    io.to(room).emit("userList", getUsersInRoom(room));
-  });
+        // Welcome + notify room members (client filters system messages)
+        socket.emit("chatMessage", { user: "System", text: `Welcome to ${room}, ${username}! 🎉` });
+        socket.to(room).emit("chatMessage", { user: "System", text: `${username} joined the room` });
 
-  socket.on("chatMessage", (msg) => {
-    io.to(msg.room).emit("chatMessage", msg); // broadcast inside room
-  });
+        // Update user list across the room
+        io.to(room).emit("userList", getUsersInRoom(room));
+    });
 
-  socket.on("privateMessage", ({ to, text }) => {
-    const fromUser = users[socket.id];
-    if (fromUser && users[to]) {
-      io.to(to).emit("chatMessage", { user: `(DM from ${fromUser.username})`, text });
-      socket.emit("chatMessage", { user: `(DM to ${users[to].username})`, text });
-    }
-  });
+    socket.on("chatMessage", (msg) => {
+        // Broadcast general chat message to the room
+        io.to(msg.room).emit("chatMessage", msg);
+    });
 
-  socket.on("disconnect", () => {
-    if (users[socket.id]) {
-      const { username, room } = users[socket.id];
-      io.to(room).emit("chatMessage", { user: "System", text: `${username} left the room 👋` });
-      delete users[socket.id];
-      io.to(room).emit("userList", getUsersInRoom(room));
-    }
-  });
+    // Dedicated private message handling
+    socket.on("privateMessage", ({ to, text, recipientFirebaseId }) => {
+        const fromUser = users[socket.id];
+        
+        if (fromUser && users[to] && socket.id !== to) {
+            // Use the specific event 'privateMessageReceived' to ensure the client routes it correctly
+            io.to(to).emit("privateMessageReceived", { 
+                fromId: socket.id, 
+                fromUsername: fromUser.username, 
+                fromFirebaseId: fromUser.firebaseId, // Pass sender's Firebase ID
+                text 
+            });
+
+        } else if (socket.id === to) {
+             socket.emit("chatMessage", { user: "System", text: "You can't send a private message to yourself." });
+        }
+    });
+
+    socket.on("disconnect", () => {
+        if (users[socket.id]) {
+            const { username, room } = users[socket.id];
+            
+            io.to(room).emit("chatMessage", { user: "System", text: `${username} left the room 👋` });
+            
+            delete users[socket.id];
+            io.to(room).emit("userList", getUsersInRoom(room));
+        }
+    });
 });
 
+/**
+ * Filters the global users object to get a list of active users in a specific room,
+ * including their Firebase ID for DM persistence pathing.
+ */
 function getUsersInRoom(room) {
-  return Object.entries(users)
-    .filter(([id, user]) => user.room === room)
-    .map(([id, user]) => ({ id, username: user.username }));
+    return Object.entries(users)
+        .filter(([id, user]) => user.room === room)
+        .map(([id, user]) => ({ 
+            id, 
+            username: user.username,
+            firebaseId: user.firebaseId // Essential for client DM logic
+        }));
 }
 
 const PORT = process.env.PORT || 5000;
