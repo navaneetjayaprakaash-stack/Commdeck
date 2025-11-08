@@ -6,8 +6,12 @@
     <title>Chatify - Persistent Multi-Room Chat</title>
     <!-- Load Tailwind CSS for utility classes -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Use Inter font family -->
     <style>
-        /* Custom CSS for Theming and Structure */
+        body { font-family: 'Inter', sans-serif; }
+
+        /* --- Custom CSS for Theming and Structure --- */
 
         /* Define all CSS variables for dynamic theming */
         :root {
@@ -25,7 +29,6 @@
 
         /* Base styles */
         body {
-            font-family: 'Inter', sans-serif;
             background: var(--background);
             color: var(--text);
             transition: background-color 0.3s, color 0.3s;
@@ -70,7 +73,7 @@
             align-self: flex-start;
             cursor: pointer;
         }
-        
+
         /* Theming Logic */
         body[data-theme='sunset-glow'] { --primary:#ff6e6e; --bubble-self:#ff9f80; --bubble-other:#ff6e6e; --background:#2c1a1a; --sidebar-bg:#1a0c0c; --input-bg:#3c2c2c; }
         body[data-theme='purple-haze'] { --primary:#9b59b6; --bubble-self:#a68ed3; --bubble-other:#9b59b6; --background:#1a0a1a; --sidebar-bg:#0a000a; --input-bg:#3c2c3c; }
@@ -190,10 +193,10 @@
         </div>
     </div>
 
-    <!-- Socket.io for Real-Time Presence (still needed) -->
+    <!-- Socket.io for Real-Time Presence -->
     <script src="/socket.io/socket.io.js"></script>
-
-    <!-- Firebase SDKs & Application Logic -->
+    
+    <!-- --- Client-Side JavaScript Logic --- -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -225,36 +228,49 @@
         let dmRecipientName = "";
         let chatUnsubscribe = null; 
         let dmUnsubscribe = null;   
-        
+
         // Maps Socket ID to { username, firebaseId }
         let activeUsersMap = new Map(); 
+
+        // --- Window Exposure (Necessary for inline HTML calls like onclick="") ---
+        window.showMessageBox = showMessageBox;
+        window.closeMessageBox = closeMessageBox;
+        window.switchRoom = switchRoom;
+        window.generateNewRoom = generateNewRoom;
+        window.copyRoomLink = copyRoomLink;
+        window.changeUsername = changeUsername;
+        window.handleKeyPress = handleKeyPress;
+        window.sendMessage = sendMessage;
+        window.handleDMKeyPress = handleDMKeyPress;
+        window.openDMPanel = openDMPanel;
+        window.closeDMPanel = closeDMPanel;
+        window.sendDM = sendDM;
+        window.applyTheme = applyTheme;
+
 
         // --- Utility Functions ---
 
         // Custom Message Box (Replaces alert())
-        window.showMessageBox = (title, message) => {
+        function showMessageBox(title, message) {
             document.getElementById('modal-title').textContent = title;
             document.getElementById('modal-message').textContent = message;
             document.getElementById('custom-modal').classList.remove('hidden');
             document.getElementById('custom-modal').classList.add('flex');
         };
 
-        window.closeMessageBox = () => {
+        function closeMessageBox() {
             document.getElementById('custom-modal').classList.remove('flex');
             document.getElementById('custom-modal').classList.add('hidden');
         };
-        
+
         // --- Firestore Path Helpers ---
-        // Room messages are public data, unique to this application
         const getRoomPath = (roomName) => `/artifacts/${appId}/public/data/rooms/${roomName}/messages`;
-        
-        // DMs are stored in a public collection named after the sorted pair of User IDs
+
         const getDMPath = (user1Id, user2Id) => {
-            // Sort UIDs to ensure the path is consistent
             const dmId = [user1Id, user2Id].sort().join('_');
             return `/artifacts/${appId}/public/data/dms/${dmId}/messages`;
         };
-        
+
         // --- Firebase Initialization & Authentication ---
         async function initializeFirebase() {
             if (!firebaseConfig) {
@@ -273,7 +289,7 @@
                         username = user.displayName || `User-${user.uid.substring(0, 4)}`;
                         
                         if (!user.displayName) {
-                             await updateProfile(user, { displayName: username });
+                            await updateProfile(user, { displayName: username });
                         }
                         
                         isAuthReady = true;
@@ -282,10 +298,8 @@
                         document.getElementById("currentUserId").textContent = user.uid.substring(0, 8) + '...';
                         document.getElementById("currentUsername").textContent = username;
                         
-                        // Start the chat application logic
                         initializeChat(); 
                     } else {
-                        // Sign in if not authenticated
                         if (initialAuthToken) {
                             await signInWithCustomToken(auth, initialAuthToken);
                         } else {
@@ -297,44 +311,37 @@
                 console.error("Error initializing Firebase:", error);
             }
         }
-        
+
         // --- Chat Initialization & Setup ---
         function initializeChat() {
             if (!socket) {
-                socket = io(); // Initialize socket.io connection
+                // Socket.io is available globally via the CDN link in index.html
+                socket = io(); 
 
-                // Listen for Socket.IO updates (for presence/user list)
                 socket.on("userList", updateRoomUserList);
                 socket.on("clientInfo", (info) => {
-                     // Get the client's socket ID from the server
-                     socket.id = info.userId; 
+                    socket.id = info.userId; 
                 });
                 
-                // CRITICAL FIX: Dedicated listener for incoming DMs
                 socket.on("privateMessageReceived", handleIncomingDM); 
                 
-                // Handle system messages (user join/leave)
                 socket.on("chatMessage", (msg) => {
-                     if (msg.user === "System") {
-                         window.displayMessage(msg, "chat-messages", "system");
-                     }
+                    if (msg.user === "System") {
+                        displayMessage(msg, "chat-messages", "system");
+                    }
                 });
             }
 
-            // Determine room from URL or default (Fixes shared room issue)
             const urlParams = new URLSearchParams(window.location.search);
             currentRoom = urlParams.get("room") || DEFAULT_ROOM_NAME;
             
-            // Join the Socket.IO room, sending Firebase ID
             socket.emit("joinRoom", { username, room: currentRoom, firebaseId: userId });
 
-            // Update UI and load persistent messages
             updateRoomUI(currentRoom);
             
-            // Load theme
             const savedTheme = localStorage.getItem('chatTheme') || 'dark-discord';
-            document.getElementById('themeSelector").value = savedTheme;
-            window.applyTheme(savedTheme);
+            document.getElementById('themeSelector').value = savedTheme;
+            applyTheme(savedTheme);
         }
 
         // --- Room Management ---
@@ -343,37 +350,35 @@
             document.getElementById("currentRoomDisplay").textContent = newRoom;
             document.getElementById("messageInput").placeholder = `Message #${newRoom}`;
             document.getElementById("chat-messages").innerHTML = "";
-            window.closeDMPanel(); // Hide DM panel if switching to GC
+            closeDMPanel(); // Hide DM panel if switching to GC
             
-            // Start listening for persistent messages
             loadMessages(newRoom);
         }
-        
-        window.switchRoom = (newRoomName) => {
+
+        function switchRoom(newRoomName) {
             if (newRoomName === currentRoom) return; 
-            // Change the URL to trigger a reload and join the new room
             window.location.href = `/?room=${newRoomName}`;
         }
-        
-        window.generateNewRoom = () => {
+
+        function generateNewRoom() {
             const newRoomName = prompt("Enter the name for the new room:");
             if (newRoomName && newRoomName.trim()) {
                 const newRoom = newRoomName.trim().toLowerCase().replace(/\s/g, '-');
-                window.switchRoom(newRoom);
+                switchRoom(newRoom);
             }
-        };
+        }
 
-        window.copyRoomLink = () => {
+        function copyRoomLink() {
             const url = `${window.location.origin}/?room=${currentRoom}`;
             navigator.clipboard.writeText(url).then(() => {
-                window.showMessageBox('Link Copied', `Room link copied to clipboard: ${url}`);
+                showMessageBox('Link Copied', `Room link copied to clipboard: ${url}`);
             }).catch(err => {
                 console.error('Could not copy text: ', err);
-                window.showMessageBox('Copy Failed', `Manually copy: ${url}`);
+                showMessageBox('Copy Failed', `Manually copy: ${url}`);
             });
-        };
+        }
 
-        window.changeUsername = async () => {
+        async function changeUsername() {
             const newUsername = prompt("Enter a new username:");
             if (newUsername && newUsername.trim() !== username) {
                 username = newUsername.trim();
@@ -381,12 +386,11 @@
                 await updateProfile(auth.currentUser, { displayName: username });
                 document.getElementById("currentUsername").textContent = username;
                 
-                // Notify the room and re-join socket for updated presence list
-                window.sendMessage(null, `changed name to ${username}`, true);
+                sendMessage(null, `changed name to ${username}`, true);
                 socket.emit("joinRoom", { username, room: currentRoom, firebaseId: userId });
             }
         }
-        
+
         // --- Persistence (General Chat) ---
         function loadMessages(roomName) {
             if (chatUnsubscribe) {
@@ -401,13 +405,13 @@
                 messagesDiv.innerHTML = "";
                 snapshot.forEach((doc) => {
                     const msg = doc.data();
-                    window.displayMessage(msg, "chat-messages", msg.isSystem ? "system" : "chat");
+                    displayMessage(msg, "chat-messages", msg.isSystem ? "system" : "chat");
                 });
             }, (error) => {
                 console.error("Error listening to room messages:", error);
             });
         }
-        
+
         // --- Persistence (Direct Messages) ---
         function loadDMMessages(recipientFirebaseId) {
             if (dmUnsubscribe) {
@@ -426,7 +430,7 @@
                 snapshot.forEach((doc) => {
                     const msg = doc.data();
                     const messageType = msg.uid === userId ? "self-dm" : "other-dm";
-                    window.displayMessage(msg, "dm-messages", messageType);
+                    displayMessage(msg, "dm-messages", messageType);
                 });
             }, (error) => {
                 console.error("Error listening to DM messages:", error);
@@ -436,13 +440,13 @@
 
         // --- Message Sending ---
 
-        window.handleKeyPress = (event) => {
+        function handleKeyPress(event) {
             if (event.key === 'Enter') {
-                window.sendMessage();
+                sendMessage();
             }
         };
 
-        window.sendMessage = async (event, systemText = null, isSystem = false) => {
+        async function sendMessage(event, systemText = null, isSystem = false) {
             const inputElement = document.getElementById("messageInput");
             const text = systemText || inputElement.value.trim();
             if (!text || !isAuthReady) return;
@@ -457,11 +461,9 @@
             };
             
             try {
-                // Save to Firestore
                 const roomRef = collection(db, getRoomPath(currentRoom));
                 await addDoc(roomRef, messageData);
                 
-                // If it's a system message (like name change), notify others via socket immediately
                 if (isSystem) {
                     socket.emit("chatMessage", messageData); 
                 }
@@ -469,69 +471,68 @@
                 inputElement.value = "";
             } catch (e) {
                 console.error("Error writing message: ", e);
-                window.showMessageBox("Error", "Could not send message.");
+                showMessageBox("Error", "Could not send message.");
             }
         };
 
-        
+
         // --- DM Logic ---
-        window.handleDMKeyPress = (event) => {
+        function handleDMKeyPress(event) {
             if (event.key === 'Enter') {
-                window.sendDM();
+                sendDM();
             }
         };
 
-        window.openDMPanel = (socketId, userName, firebaseId) => {
+        function openDMPanel(socketId, userName, firebaseId) {
             dmRecipientId = socketId;
             dmRecipientName = userName;
             
-            // Store the mapping
             activeUsersMap.set(socketId, { username: userName, firebaseId: firebaseId });
             
             document.getElementById("dmRecipientName").textContent = `DM with ${userName}`;
             document.getElementById("dm-panel").classList.remove("hidden");
             
             document.getElementById("dm-messages").innerHTML = "";
-            loadDMMessages(firebaseId); // Load persistent DM history
+            loadDMMessages(firebaseId); 
 
             document.getElementById("dmMessageInput").focus();
         };
 
-        window.closeDMPanel = () => {
+        function closeDMPanel() {
             dmRecipientId = null;
             dmRecipientName = "";
             document.getElementById("dm-panel").classList.add("hidden");
             if (dmUnsubscribe) {
-                dmUnsubscribe(); // Stop listening to DMs
+                dmUnsubscribe(); 
             }
         };
 
-        window.sendDM = async () => {
+        async function sendDM() {
             const inputElement = document.getElementById("dmMessageInput");
             const text = inputElement.value.trim();
             if (!text || !dmRecipientId || !isAuthReady) return;
 
             const recipientInfo = activeUsersMap.get(dmRecipientId);
             if (!recipientInfo || !recipientInfo.firebaseId) {
-                window.showMessageBox("Error", "Recipient details missing.");
+                showMessageBox("Error", "Recipient details missing.");
                 return;
             }
 
             const messageData = {
                 user: username, 
                 text: text, 
-                uid: userId, // Sender's Firebase UID
-                recipientUid: recipientInfo.firebaseId, // Recipient's Firebase UID
+                uid: userId, 
+                recipientUid: recipientInfo.firebaseId, 
                 timestamp: serverTimestamp() 
             };
 
             try {
-                // 1. Save to Firestore (path uses both UIDs)
+                // 1. Save to Firestore 
                 const dmPath = getDMPath(userId, recipientInfo.firebaseId);
                 const dmRef = collection(db, dmPath);
                 await addDoc(dmRef, messageData);
                 
-                // 2. Send Socket notification to the recipient (using their socket ID)
+                // 2. Send Socket notification
                 socket.emit("privateMessage", { 
                     to: dmRecipientId, 
                     text: text, 
@@ -541,57 +542,50 @@
                 inputElement.value = "";
             } catch (e) {
                 console.error("Error writing DM message: ", e);
-                window.showMessageBox("Error", "Could not send DM.");
+                showMessageBox("Error", "Could not send DM.");
             }
         };
-        
+
         function handleIncomingDM(msg) {
-            // msg = { fromId, fromUsername, fromFirebaseId, text }
-            
-            // Check if the DM panel is currently open with the sender
             const recipientFirebaseId = activeUsersMap.get(dmRecipientId)?.firebaseId;
 
             if (msg.fromFirebaseId === recipientFirebaseId) {
-                // If the panel is open, the message will auto-appear via Firestore's onSnapshot.
+                // Message will appear via Firestore listener
             } else {
-                // If the panel is closed or focused on someone else, show a notification in the main chat
+                // Show notification in the main chat
                 const notificationMsg = { 
                     fromUsername: msg.fromUsername, 
                     text: `(Received DM: ${msg.text.substring(0, 30)}${msg.text.length > 30 ? '...' : ''})`, 
                     isDMNotification: true,
-                    // Pass data needed to open DM panel on click
                     dmSocketId: msg.fromId, 
                     dmFirebaseId: msg.fromFirebaseId,
                 };
-                window.displayMessage(notificationMsg, "chat-messages");
+                displayMessage(notificationMsg, "chat-messages");
             }
         }
 
 
         // --- Message Rendering (Fixes to 'username: message' format) ---
-
-        window.displayMessage = (msg, targetId = "chat-messages", messageType = "") => {
+        function displayMessage(msg, targetId = "chat-messages", messageType = "") {
             const target = document.getElementById(targetId);
             const div = document.createElement("div");
             div.classList.add("message", "p-2", "text-sm");
 
             if (messageType === "system") {
-                // System messages
                 div.classList.add("system", "px-3", "py-1");
                 div.textContent = msg.text;
             } else if (msg.isDMNotification) {
-                // Incoming DM Notification in GC 
                 div.classList.add("dm-notification");
                 div.innerHTML = `[DM from ${msg.fromUsername}] ${msg.text}`;
                 div.onclick = () => {
-                    window.openDMPanel(msg.dmSocketId, msg.fromUsername, msg.dmFirebaseId);
+                    openDMPanel(msg.dmSocketId, msg.fromUsername, msg.dmFirebaseId);
                 };
             } else if (targetId === "dm-messages") {
-                // Direct Message Panel Rendering
+                // DM Messages (already contain full text)
                 div.classList.add(messageType === "self-dm" ? "self" : "other", "px-4", "py-3");
                 div.innerHTML = msg.text; 
             } else {
-                // General Chat Message Rendering (Requested format: "user xyz: message")
+                // General Chat Messages (Standard format: "user: message")
                 const isSelf = msg.uid === userId;
                 div.classList.add(isSelf ? "self" : "other", "px-4", "py-3");
                 
@@ -628,14 +622,13 @@
                 const li = document.createElement("li");
                 li.className = `p-2 rounded-lg cursor-pointer transition duration-150 ease-in-out ${currentRoom === roomName ? 'bg-[var(--primary)] font-bold' : 'hover:bg-[var(--input-bg)]'}`;
                 li.textContent = `# ${roomName}`;
-                li.onclick = () => window.switchRoom(roomName);
+                li.onclick = () => switchRoom(roomName);
                 ulRooms.appendChild(li);
             });
 
 
             // 2. Update active users list
             users.forEach((u) => {
-                // Store Firebase ID and Socket ID mapping
                 activeUsersMap.set(u.id, { username: u.username, firebaseId: u.firebaseId });
 
                 const isSelf = u.firebaseId === userId;
@@ -645,26 +638,27 @@
                 
                 if (!isSelf) {
                     li.onclick = () => {
-                        window.openDMPanel(u.id, u.username, u.firebaseId);
+                        openDMPanel(u.id, u.username, u.firebaseId);
                     };
                 }
                 ulUsers.appendChild(li);
             });
         }
-        
+
         // --- Theming Logic ---
-        window.applyTheme = (themeName) => {
+        function applyTheme(themeName) {
             document.body.setAttribute('data-theme', themeName);
             localStorage.setItem('chatTheme', themeName);
         }
 
         // --- Start Application ---
-        if (firebaseConfig) {
-            initializeFirebase();
-        } else {
-            document.getElementById("currentUsername").textContent = "Error: No Firebase Config";
-        }
-        
+        document.addEventListener('DOMContentLoaded', () => {
+            if (firebaseConfig) {
+                initializeFirebase();
+            } else {
+                document.getElementById("currentUsername").textContent = "Error: No Firebase Config";
+            }
+        });
     </script>
 </body>
 </html>
