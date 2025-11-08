@@ -1,664 +1,194 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8" />
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chatify - Persistent Multi-Room Chat</title>
-    <!-- Load Tailwind CSS for utility classes -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Use Inter font family -->
-    <style>
-        body { font-family: 'Inter', sans-serif; }
 
-        /* --- Custom CSS for Theming and Structure --- */
+    <title>Chatify - Multi-Room Chat with DMs</title>
 
-        /* Define all CSS variables for dynamic theming */
-        :root {
-            --primary: #5865f2;
-            --background: #36393f;
-            --sidebar-bg: #2f3136;
-            --text: #ffffff;
-            --input-bg: #40444b;
-            --system-text: #72767d;
-            --separator: #202225;
-            --bubble-self: #5865f2;
-            --bubble-other: #40444b;
-            --button-hover: #4752c4;
-        }
+    <link rel="stylesheet" href="style.css"> 
 
-        /* Base styles */
-        body {
-            background: var(--background);
-            color: var(--text);
-            transition: background-color 0.3s, color 0.3s;
-        }
-
-        /* Message Bubbles */
-        .message {
-            max-width: 70%;
-            border-radius: 1rem;
-            word-wrap: break-word;
-            line-height: 1.4;
-            position: relative;
-        }
-
-        .message.self {
-            background: var(--bubble-self);
-            align-self: flex-end;
-            color: #fff;
-            border-bottom-right-radius: 0.375rem; 
-        }
-
-        .message.other {
-            background: var(--bubble-other);
-            align-self: flex-start;
-            color: #fff;
-            border-bottom-left-radius: 0.375rem;
-        }
-
-        .message.system {
-            background: var(--system-text);
-            font-style: italic;
-            align-self: center;
-            color: #fff;
-            border-radius: 0.5rem;
-            font-size: 0.8em;
-        }
-
-        .message.dm-notification {
-            background: var(--primary);
-            color: white;
-            padding: 0.5rem 1rem;
-            align-self: flex-start;
-            cursor: pointer;
-        }
-
-        /* Theming Logic */
-        body[data-theme='sunset-glow'] { --primary:#ff6e6e; --bubble-self:#ff9f80; --bubble-other:#ff6e6e; --background:#2c1a1a; --sidebar-bg:#1a0c0c; --input-bg:#3c2c2c; }
-        body[data-theme='purple-haze'] { --primary:#9b59b6; --bubble-self:#a68ed3; --bubble-other:#9b59b6; --background:#1a0a1a; --sidebar-bg:#0a000a; --input-bg:#3c2c3c; }
-        body[data-theme='deep-ocean'] { --primary:#2980b9; --bubble-self:#3498db; --bubble-other:#2980b9; --background:#0a1a2a; --sidebar-bg:#000a1a; --input-bg:#1a2a3a; }
-        body[data-theme='electric-blue'] { --primary:#00b8d4; --bubble-self:#00e5ff; --bubble-other:#00b8d4; --background:#172a3a; --sidebar-bg:#0f1d2a; --input-bg:#2d4253; }
-        body[data-theme='royal-blue'] { --primary:#4169e1; --bubble-self:#637eea; --bubble-other:#4169e1; --background:#0a0f2a; --sidebar-bg:#00051a; --input-bg:#1a1f3a; }
-    </style>
 </head>
-<body data-theme="dark-discord" class="h-screen overflow-hidden">
-    <div id="app" class="flex h-full">
 
-        <!-- Sidebar (Left Panel) -->
-        <aside id="sidebar" class="w-72 min-w-[288px] bg-[var(--sidebar-bg)] p-4 flex flex-col overflow-y-auto border-r-2 border-[var(--separator)]">
-            <div class="space-y-4">
-                
-                <!-- User Profile -->
-                <div class="list-section bg-[var(--input-bg)] p-3 rounded-xl shadow-md flex justify-between items-center">
-                    <div class="text-sm font-semibold text-gray-300">
-                        <span id="currentUsername">Loading...</span>
-                        <div class="text-xs text-gray-500">UID: <span id="currentUserId">N/A</span></div>
-                    </div>
-                    <button onclick="changeUsername()" class="bg-[var(--primary)] hover:bg-[var(--button-hover)] text-white text-xs font-bold py-1 px-3 rounded-lg transition duration-200">
-                        Change Name
-                    </button>
-                </div>
-                
-                <hr class="separator h-px border-0 bg-[var(--separator)] my-2">
+<body data-theme="dark-discord">
 
-                <!-- Room List & Controls -->
-                <div class="list-section space-y-2">
-                    <h3 class="font-semibold text-lg mb-2">Rooms</h3>
-                    <ul id="roomList" class="space-y-1"></ul>
-                    <button onclick="copyRoomLink()" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 rounded-xl transition duration-200">
-                        🔗 Copy Room Link
-                    </button>
-                    <button onclick="generateNewRoom()" class="w-full bg-[var(--primary)] hover:bg-[var(--button-hover)] text-white font-semibold py-2 rounded-xl transition duration-200">
-                        ➕ Create New Room
-                    </button>
+    <div id="app">
+
+        <div id="sidebar">
+
+            <div class="list-section">
+
+                <h3>Current Room: <span id="roomTitle">General</span></h3>
+
+                <div class="user-profile">
+
+                    <span id="currentUsername"></span>
+
+                    <button onclick="changeUsername()">Change Name</button>
+
                 </div>
 
-                <hr class="separator h-px border-0 bg-[var(--separator)] my-2">
-
-                <!-- Theme Selector -->
-                <div class="list-section">
-                    <h3 class="font-semibold text-lg mb-2">Theme Selector</h3>
-                    <select id="themeSelector" onchange="applyTheme(this.value)" class="w-full p-2 rounded-lg bg-[var(--input-bg)] border border-[var(--separator)] text-[var(--text)]">
-                        <option value="dark-discord" selected>Discord Dark</option>
-                        <option value="sunset-glow">Sunset Glow</option>
-                        <option value="purple-haze">Purple Haze</option>
-                        <option value="deep-ocean">Deep Ocean</option>
-                        <option value="royal-blue">Royal Blue</option>
-                        <option value="electric-blue">Electric Blue</option>
-                    </select>
-                </div>
-
-                <hr class="separator h-px border-0 bg-[var(--separator)] my-2">
-
-                <!-- Users in Room -->
-                <div class="list-section">
-                    <h3 class="font-semibold text-lg mb-2">Users in Room</h3>
-                    <ul id="userList" class="space-y-1"></ul>
-                </div>
             </div>
-        </aside>
 
-        <!-- Main Chat Area -->
-        <main id="chat-area" class="flex-1 flex flex-col bg-[var(--background)] relative">
+
+
+            <hr class="separator">
+
+
+
+            <div class="list-section room-controls">
+
+                <ul id="roomList">
+
+                    </ul>
+
+                <button onclick="copyRoomLink()">🔗 Copy Room Link</button>
+
+                <button onclick="generateNewRoom()">➕ Create New Room</button>
+
+            </div>
+
+
+
+            <hr class="separator">
+
             
-            <!-- Chat Header -->
-            <div id="chat-header" class="p-4 bg-[var(--sidebar-bg)] border-b-2 border-[var(--separator)] shadow-lg">
-                <h2 class="text-2xl font-bold"># <span id="currentRoomDisplay">general</span></h2>
+
+            <div class="list-section">
+
+                <h3>Theme Selector</h3>
+
+                <select id="themeSelector" onchange="applyTheme(this.value)">
+
+                    <option value="dark-discord" selected>Discord Dark</option>
+
+                    <option value="sunset-glow">Sunset Glow</option>
+
+                    <option value="purple-haze">Purple Haze</option>
+
+                    <option value="deep-ocean">Deep Ocean</option>
+
+                    <option value="royal-blue">Royal Blue</option>
+
+                    <option value="sky-breeze">Sky Breeze</option>
+
+                    <option value="hot-pink">Hot Pink</option>
+
+                    <option value="molten-orange">Molten Orange</option>
+
+                    <option value="golden-hour">Golden Hour</option>
+
+                    <option value="rose-red">Rose Red</option>
+
+                    <option value="violet-dream">Violet Dream</option>
+
+                    <option value="indigo-night">Indigo Night</option>
+
+                    <option value="mystic-purple">Mystic Purple</option>
+
+                    <option value="fuchsia-glow">Fuchsia Glow</option>
+
+                    <option value="electric-blue">Electric Blue</option>
+
+                    <option value="aqua-mist">Aqua Mist</option>
+
+                    <option value="magenta-pulse">Magenta Pulse</option>
+
+                    <option value="blazing-orange">Blazing Orange</option>
+
+                    <option value="sunlit-gold">Sunlit Gold</option>
+
+                    <option value="royal-violet">Royal Violet</option>
+
+                    <option value="night-indigo">Night Indigo</option>
+
+                </select>
+
             </div>
 
-            <!-- Message Container -->
-            <div id="chat-messages" class="flex-1 p-5 overflow-y-auto flex flex-col gap-3">
-                <!-- Messages will be injected here -->
-                <div class="system p-2 px-3 py-1 rounded-lg text-sm italic w-fit mx-auto">Loading message history...</div>
+
+
+            <hr class="separator">
+
+
+
+            <div class="list-section">
+
+                <h3>Users in Room</h3>
+
+                <ul id="userList">
+
+                    </ul>
+
             </div>
 
-            <!-- Input Area (Bottom) -->
-            <div id="input-area" class="flex p-4 bg-[var(--background)]">
-                <input id="messageInput" placeholder="Message #general" onkeypress="handleKeyPress(event)" class="flex-1 p-3 rounded-full border-none bg-[var(--input-bg)] text-[var(--text)] mr-3 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" />
-                <button onclick="sendMessage()" class="py-2 px-6 rounded-full bg-[var(--primary)] text-white font-bold hover:bg-[var(--button-hover)] transition duration-200">
-                    Send
-                </button>
-            </div>
-        </main>
-
-        <!-- DM Panel (Right Panel) -->
-        <div id="dm-panel" class="hidden w-80 min-w-[320px] bg-[var(--sidebar-bg)] flex flex-col border-l-2 border-[var(--separator)]">
-            <div id="dm-header" class="p-4 bg-[var(--sidebar-bg)] border-b-2 border-[var(--separator)] flex justify-between items-center">
-                <h3 id="dmRecipientName" class="text-lg font-semibold">Direct Message</h3>
-                <button onclick="closeDMPanel()" class="text-[var(--text)] opacity-70 text-2xl hover:opacity-100 transition duration-200">
-                    &times;
-                </button>
-            </div>
-            <div id="dm-messages" class="flex-1 p-5 overflow-y-auto flex flex-col gap-3">
-                <div class="system p-2 px-3 py-1 rounded-lg text-sm italic w-fit mx-auto">DM history will load here.</div>
-            </div>
-            <div id="dm-input" class="flex p-4 bg-[var(--background)]">
-                <input id="dmMessageInput" placeholder="Send a DM..." onkeypress="handleDMKeyPress(event)" class="flex-1 p-3 rounded-full border-none bg-[var(--input-bg)] text-[var(--text)] mr-3 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" />
-                <button onclick="sendDM()" class="py-2 px-6 rounded-full bg-[var(--primary)] text-white font-bold hover:bg-[var(--button-hover)] transition duration-200">
-                    Send
-                </button>
-            </div>
         </div>
-    </div>
-    
-    <!-- Custom Modal for Alerts (Replaces alert()) -->
-    <div id="custom-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
-        <div class="bg-[var(--sidebar-bg)] p-6 rounded-xl max-w-sm w-full shadow-2xl space-y-4">
-            <h4 class="text-xl font-bold" id="modal-title">Notification</h4>
-            <p id="modal-message" class="text-gray-300"></p>
-            <button onclick="closeMessageBox()" class="w-full bg-[var(--primary)] hover:bg-[var(--button-hover)] text-white font-semibold py-2 rounded-lg">
-                Close
-            </button>
+
+
+
+        <div id="chat-area">
+
+            <div id="chat-header">
+
+                <h2># <span id="currentRoomDisplay">general</span></h2>
+
+            </div>
+
+            <div id="chat-messages">
+
+                </div>
+
+            <div id="input-area">
+
+                <input id="messageInput" placeholder="Message #general" onkeypress="handleKeyPress(event)" />
+
+                <button onclick="sendMessage()">Send</button>
+
+            </div>
+
         </div>
+
+
+
+        <div id="dm-panel" class="hidden">
+
+            <div id="dm-header">
+
+                <h3 id="dmRecipientName">Direct Message</h3>
+
+                <button onclick="closeDMPanel()">X</button>
+
+            </div>
+
+            <div id="dm-messages">
+
+                </div>
+
+            <div id="dm-input">
+
+                <input id="dmMessageInput" placeholder="Send a DM..." onkeypress="handleDMKeyPress(event)" />
+
+                <button onclick="sendDM()">Send</button>
+
+            </div>
+
+        </div>
+
+
+
     </div>
 
-    <!-- Socket.io for Real-Time Presence -->
+
+
     <script src="/socket.io/socket.io.js"></script>
+
+    <script src="script.js"></script>
     
-    <!-- --- Client-Side JavaScript Logic --- -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { 
-            getFirestore, collection, query, orderBy, limit, 
-            addDoc, onSnapshot, serverTimestamp
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-
-        // Set Firebase logging level for debugging
-        setLogLevel('debug');
-
-        // --- Global Variables (Mandatory for Canvas Environment) ---
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-chatify-app';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        let db;
-        let auth;
-        let userId = null; // Firebase User ID
-        let username = "Guest";
-        let isAuthReady = false;
-        let socket; // Socket.io connection
-
-        // Chat State
-        const DEFAULT_ROOM_NAME = `general-${appId}`; 
-        let currentRoom = DEFAULT_ROOM_NAME; 
-        let dmRecipientId = null; // Socket ID of DM recipient
-        let dmRecipientName = "";
-        let chatUnsubscribe = null; 
-        let dmUnsubscribe = null;   
-
-        // Maps Socket ID to { username, firebaseId }
-        let activeUsersMap = new Map(); 
-
-        // --- Window Exposure (Necessary for inline HTML calls like onclick="") ---
-        window.showMessageBox = showMessageBox;
-        window.closeMessageBox = closeMessageBox;
-        window.switchRoom = switchRoom;
-        window.generateNewRoom = generateNewRoom;
-        window.copyRoomLink = copyRoomLink;
-        window.changeUsername = changeUsername;
-        window.handleKeyPress = handleKeyPress;
-        window.sendMessage = sendMessage;
-        window.handleDMKeyPress = handleDMKeyPress;
-        window.openDMPanel = openDMPanel;
-        window.closeDMPanel = closeDMPanel;
-        window.sendDM = sendDM;
-        window.applyTheme = applyTheme;
-
-
-        // --- Utility Functions ---
-
-        // Custom Message Box (Replaces alert())
-        function showMessageBox(title, message) {
-            document.getElementById('modal-title').textContent = title;
-            document.getElementById('modal-message').textContent = message;
-            document.getElementById('custom-modal').classList.remove('hidden');
-            document.getElementById('custom-modal').classList.add('flex');
-        };
-
-        function closeMessageBox() {
-            document.getElementById('custom-modal').classList.remove('flex');
-            document.getElementById('custom-modal').classList.add('hidden');
-        };
-
-        // --- Firestore Path Helpers ---
-        const getRoomPath = (roomName) => `/artifacts/${appId}/public/data/rooms/${roomName}/messages`;
-
-        const getDMPath = (user1Id, user2Id) => {
-            const dmId = [user1Id, user2Id].sort().join('_');
-            return `/artifacts/${appId}/public/data/dms/${dmId}/messages`;
-        };
-
-        // --- Firebase Initialization & Authentication ---
-        async function initializeFirebase() {
-            if (!firebaseConfig) {
-                console.error("Firebase config not available.");
-                return;
-            }
-
-            try {
-                const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        username = user.displayName || `User-${user.uid.substring(0, 4)}`;
-                        
-                        if (!user.displayName) {
-                            await updateProfile(user, { displayName: username });
-                        }
-                        
-                        isAuthReady = true;
-
-                        // Ensure UI shows current user details
-                        document.getElementById("currentUserId").textContent = user.uid.substring(0, 8) + '...';
-                        document.getElementById("currentUsername").textContent = username;
-                        
-                        initializeChat(); 
-                    } else {
-                        if (initialAuthToken) {
-                            await signInWithCustomToken(auth, initialAuthToken);
-                        } else {
-                            await signInAnonymously(auth);
-                        }
-                    }
-                });
-            } catch (error) {
-                console.error("Error initializing Firebase:", error);
-            }
-        }
-
-        // --- Chat Initialization & Setup ---
-        function initializeChat() {
-            if (!socket) {
-                // Socket.io is available globally via the CDN link in index.html
-                socket = io(); 
-
-                socket.on("userList", updateRoomUserList);
-                socket.on("clientInfo", (info) => {
-                    socket.id = info.userId; 
-                });
-                
-                socket.on("privateMessageReceived", handleIncomingDM); 
-                
-                socket.on("chatMessage", (msg) => {
-                    if (msg.user === "System") {
-                        displayMessage(msg, "chat-messages", "system");
-                    }
-                });
-            }
-
-            const urlParams = new URLSearchParams(window.location.search);
-            currentRoom = urlParams.get("room") || DEFAULT_ROOM_NAME;
-            
-            socket.emit("joinRoom", { username, room: currentRoom, firebaseId: userId });
-
-            updateRoomUI(currentRoom);
-            
-            const savedTheme = localStorage.getItem('chatTheme') || 'dark-discord';
-            document.getElementById('themeSelector').value = savedTheme;
-            applyTheme(savedTheme);
-        }
-
-        // --- Room Management ---
-        function updateRoomUI(newRoom) {
-            currentRoom = newRoom;
-            document.getElementById("currentRoomDisplay").textContent = newRoom;
-            document.getElementById("messageInput").placeholder = `Message #${newRoom}`;
-            document.getElementById("chat-messages").innerHTML = "";
-            closeDMPanel(); // Hide DM panel if switching to GC
-            
-            loadMessages(newRoom);
-        }
-
-        function switchRoom(newRoomName) {
-            if (newRoomName === currentRoom) return; 
-            window.location.href = `/?room=${newRoomName}`;
-        }
-
-        function generateNewRoom() {
-            const newRoomName = prompt("Enter the name for the new room:");
-            if (newRoomName && newRoomName.trim()) {
-                const newRoom = newRoomName.trim().toLowerCase().replace(/\s/g, '-');
-                switchRoom(newRoom);
-            }
-        }
-
-        function copyRoomLink() {
-            const url = `${window.location.origin}/?room=${currentRoom}`;
-            navigator.clipboard.writeText(url).then(() => {
-                showMessageBox('Link Copied', `Room link copied to clipboard: ${url}`);
-            }).catch(err => {
-                console.error('Could not copy text: ', err);
-                showMessageBox('Copy Failed', `Manually copy: ${url}`);
-            });
-        }
-
-        async function changeUsername() {
-            const newUsername = prompt("Enter a new username:");
-            if (newUsername && newUsername.trim() !== username) {
-                username = newUsername.trim();
-                
-                await updateProfile(auth.currentUser, { displayName: username });
-                document.getElementById("currentUsername").textContent = username;
-                
-                sendMessage(null, `changed name to ${username}`, true);
-                socket.emit("joinRoom", { username, room: currentRoom, firebaseId: userId });
-            }
-        }
-
-        // --- Persistence (General Chat) ---
-        function loadMessages(roomName) {
-            if (chatUnsubscribe) {
-                chatUnsubscribe();
-            }
-
-            const messagesRef = collection(db, getRoomPath(roomName));
-            const q = query(messagesRef, orderBy("timestamp", "asc"), limit(100)); 
-
-            chatUnsubscribe = onSnapshot(q, (snapshot) => {
-                const messagesDiv = document.getElementById("chat-messages");
-                messagesDiv.innerHTML = "";
-                snapshot.forEach((doc) => {
-                    const msg = doc.data();
-                    displayMessage(msg, "chat-messages", msg.isSystem ? "system" : "chat");
-                });
-            }, (error) => {
-                console.error("Error listening to room messages:", error);
-            });
-        }
-
-        // --- Persistence (Direct Messages) ---
-        function loadDMMessages(recipientFirebaseId) {
-            if (dmUnsubscribe) {
-                dmUnsubscribe();
-            }
-            
-            if (!userId || !recipientFirebaseId) return;
-
-            const dmPath = getDMPath(userId, recipientFirebaseId);
-            const messagesRef = collection(db, dmPath);
-            const q = query(messagesRef, orderBy("timestamp", "asc"), limit(100)); 
-
-            dmUnsubscribe = onSnapshot(q, (snapshot) => {
-                const dmDiv = document.getElementById("dm-messages");
-                dmDiv.innerHTML = "";
-                snapshot.forEach((doc) => {
-                    const msg = doc.data();
-                    const messageType = msg.uid === userId ? "self-dm" : "other-dm";
-                    displayMessage(msg, "dm-messages", messageType);
-                });
-            }, (error) => {
-                console.error("Error listening to DM messages:", error);
-            });
-        }
-
-
-        // --- Message Sending ---
-
-        function handleKeyPress(event) {
-            if (event.key === 'Enter') {
-                sendMessage();
-            }
-        };
-
-        async function sendMessage(event, systemText = null, isSystem = false) {
-            const inputElement = document.getElementById("messageInput");
-            const text = systemText || inputElement.value.trim();
-            if (!text || !isAuthReady) return;
-
-            const messageData = { 
-                user: username, 
-                text: text, 
-                room: currentRoom,
-                uid: userId, // Firebase UID
-                isSystem: isSystem,
-                timestamp: serverTimestamp() 
-            };
-            
-            try {
-                const roomRef = collection(db, getRoomPath(currentRoom));
-                await addDoc(roomRef, messageData);
-                
-                if (isSystem) {
-                    socket.emit("chatMessage", messageData); 
-                }
-
-                inputElement.value = "";
-            } catch (e) {
-                console.error("Error writing message: ", e);
-                showMessageBox("Error", "Could not send message.");
-            }
-        };
-
-
-        // --- DM Logic ---
-        function handleDMKeyPress(event) {
-            if (event.key === 'Enter') {
-                sendDM();
-            }
-        };
-
-        function openDMPanel(socketId, userName, firebaseId) {
-            dmRecipientId = socketId;
-            dmRecipientName = userName;
-            
-            activeUsersMap.set(socketId, { username: userName, firebaseId: firebaseId });
-            
-            document.getElementById("dmRecipientName").textContent = `DM with ${userName}`;
-            document.getElementById("dm-panel").classList.remove("hidden");
-            
-            document.getElementById("dm-messages").innerHTML = "";
-            loadDMMessages(firebaseId); 
-
-            document.getElementById("dmMessageInput").focus();
-        };
-
-        function closeDMPanel() {
-            dmRecipientId = null;
-            dmRecipientName = "";
-            document.getElementById("dm-panel").classList.add("hidden");
-            if (dmUnsubscribe) {
-                dmUnsubscribe(); 
-            }
-        };
-
-        async function sendDM() {
-            const inputElement = document.getElementById("dmMessageInput");
-            const text = inputElement.value.trim();
-            if (!text || !dmRecipientId || !isAuthReady) return;
-
-            const recipientInfo = activeUsersMap.get(dmRecipientId);
-            if (!recipientInfo || !recipientInfo.firebaseId) {
-                showMessageBox("Error", "Recipient details missing.");
-                return;
-            }
-
-            const messageData = {
-                user: username, 
-                text: text, 
-                uid: userId, 
-                recipientUid: recipientInfo.firebaseId, 
-                timestamp: serverTimestamp() 
-            };
-
-            try {
-                // 1. Save to Firestore 
-                const dmPath = getDMPath(userId, recipientInfo.firebaseId);
-                const dmRef = collection(db, dmPath);
-                await addDoc(dmRef, messageData);
-                
-                // 2. Send Socket notification
-                socket.emit("privateMessage", { 
-                    to: dmRecipientId, 
-                    text: text, 
-                    recipientFirebaseId: recipientInfo.firebaseId 
-                });
-
-                inputElement.value = "";
-            } catch (e) {
-                console.error("Error writing DM message: ", e);
-                showMessageBox("Error", "Could not send DM.");
-            }
-        };
-
-        function handleIncomingDM(msg) {
-            const recipientFirebaseId = activeUsersMap.get(dmRecipientId)?.firebaseId;
-
-            if (msg.fromFirebaseId === recipientFirebaseId) {
-                // Message will appear via Firestore listener
-            } else {
-                // Show notification in the main chat
-                const notificationMsg = { 
-                    fromUsername: msg.fromUsername, 
-                    text: `(Received DM: ${msg.text.substring(0, 30)}${msg.text.length > 30 ? '...' : ''})`, 
-                    isDMNotification: true,
-                    dmSocketId: msg.fromId, 
-                    dmFirebaseId: msg.fromFirebaseId,
-                };
-                displayMessage(notificationMsg, "chat-messages");
-            }
-        }
-
-
-        // --- Message Rendering (Fixes to 'username: message' format) ---
-        function displayMessage(msg, targetId = "chat-messages", messageType = "") {
-            const target = document.getElementById(targetId);
-            const div = document.createElement("div");
-            div.classList.add("message", "p-2", "text-sm");
-
-            if (messageType === "system") {
-                div.classList.add("system", "px-3", "py-1");
-                div.textContent = msg.text;
-            } else if (msg.isDMNotification) {
-                div.classList.add("dm-notification");
-                div.innerHTML = `[DM from ${msg.fromUsername}] ${msg.text}`;
-                div.onclick = () => {
-                    openDMPanel(msg.dmSocketId, msg.fromUsername, msg.dmFirebaseId);
-                };
-            } else if (targetId === "dm-messages") {
-                // DM Messages (already contain full text)
-                div.classList.add(messageType === "self-dm" ? "self" : "other", "px-4", "py-3");
-                div.innerHTML = msg.text; 
-            } else {
-                // General Chat Messages (Standard format: "user: message")
-                const isSelf = msg.uid === userId;
-                div.classList.add(isSelf ? "self" : "other", "px-4", "py-3");
-                
-                const userSpan = document.createElement('span');
-                userSpan.className = "font-semibold mr-1";
-                userSpan.textContent = `${msg.user}:`;
-                
-                div.appendChild(userSpan);
-                div.appendChild(document.createTextNode(msg.text));
-            }
-            
-            if (div.children.length > 0 || messageType === "system" || msg.isDMNotification || targetId === "dm-messages") {
-                target.appendChild(div);
-            }
-            
-            target.scrollTop = target.scrollHeight;
-        };
-
-
-        // --- User List Update (Socket.io) ---
-        function updateRoomUserList(users) {
-            const ulRooms = document.getElementById("roomList");
-            const ulUsers = document.getElementById("userList");
-
-            ulUsers.innerHTML = "";
-            activeUsersMap.clear();
-            
-            // 1. Update the rooms list
-            const activeRooms = new Set([DEFAULT_ROOM_NAME, currentRoom]);
-            users.forEach(u => activeRooms.add(u.room));
-
-            ulRooms.innerHTML = "";
-            activeRooms.forEach(roomName => {
-                const li = document.createElement("li");
-                li.className = `p-2 rounded-lg cursor-pointer transition duration-150 ease-in-out ${currentRoom === roomName ? 'bg-[var(--primary)] font-bold' : 'hover:bg-[var(--input-bg)]'}`;
-                li.textContent = `# ${roomName}`;
-                li.onclick = () => switchRoom(roomName);
-                ulRooms.appendChild(li);
-            });
-
-
-            // 2. Update active users list
-            users.forEach((u) => {
-                activeUsersMap.set(u.id, { username: u.username, firebaseId: u.firebaseId });
-
-                const isSelf = u.firebaseId === userId;
-                const li = document.createElement("li");
-                li.className = `p-2 rounded-lg transition duration-150 ease-in-out ${isSelf ? 'bg-[var(--input-bg)]' : 'hover:bg-[var(--primary)] hover:text-white cursor-pointer'}`;
-                li.textContent = isSelf ? `${u.username} (You)` : u.username;
-                
-                if (!isSelf) {
-                    li.onclick = () => {
-                        openDMPanel(u.id, u.username, u.firebaseId);
-                    };
-                }
-                ulUsers.appendChild(li);
-            });
-        }
-
-        // --- Theming Logic ---
-        function applyTheme(themeName) {
-            document.body.setAttribute('data-theme', themeName);
-            localStorage.setItem('chatTheme', themeName);
-        }
-
-        // --- Start Application ---
-        document.addEventListener('DOMContentLoaded', () => {
-            if (firebaseConfig) {
-                initializeFirebase();
-            } else {
-                document.getElementById("currentUsername").textContent = "Error: No Firebase Config";
-            }
-        });
-    </script>
 </body>
+    
 </html>
+
